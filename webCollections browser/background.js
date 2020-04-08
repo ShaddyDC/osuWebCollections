@@ -71,7 +71,7 @@ On a click on the browser action, send the app a message.
 */
 browser.browserAction.onClicked.addListener(() => {
   console.log("Pinging native host");
-  nativePort.postMessage({ operation: "ping");
+  nativePort.postMessage({ operation: "ping" });
 });
 
 // messages from content
