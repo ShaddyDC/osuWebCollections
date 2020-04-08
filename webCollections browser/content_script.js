@@ -4,6 +4,7 @@ var port;
 var mapExistence = null;
 var downloading = false;
 var requireOsuFolder = false;
+var connector = null;
 
 function getBeatmap() {
     return JSON.parse(document.getElementById("json-beatmapset").text);
@@ -211,7 +212,7 @@ function messageHandler(obj) {
             console.log("available collections: " + collections.toString());
             break;
 
-        case "mapExistence":
+        case "mapExistence":    //TOdo: Sometimes goes missing between background and native host
             console.log("Map available: " + obj["mapExistence"]);
             if (getMapId() == obj["mapId"]) {
                 mapExistence = obj["mapExistence"];
@@ -275,6 +276,17 @@ function messageHandler(obj) {
             loadUrl(obj["url"]);
             break;
 
+        case "connected":
+            console.log("Connected!");
+            clearInterval(connector);
+            break;
+
+
+        case "ready":
+            console.log("Background is ready!");
+            loadCurrentMap();
+            break;
+
         default:
             console.log(`Not handling received operation ${obj["operation"]}`);
             console.log(obj);
@@ -299,14 +311,18 @@ function loadCurrentMap() {
     loadMap(getMapId());
 }
 
+function connect(){
+    console.log("connecting...");
+    port = browser.runtime.connect({ name: "port-from-cs" });
+    port.onMessage.addListener(messageHandler);
+}
+
 function main() {
     console.log("Injected! :)");
 
-    port = browser.runtime.connect({ name: "port-from-cs" });
-    port.onMessage.addListener(messageHandler);
+    connector = setInterval(connect, 100);
 
     setupDomModifications();
-    loadCurrentMap();
 }
 
 main();

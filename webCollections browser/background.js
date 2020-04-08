@@ -5,6 +5,7 @@ var nativePort = browser.runtime.connectNative("webCollections");
 var ports = [];
 
 var collectionsObject = null;
+var ready = false;
 
 // load osu path
 var osuFolder = null;
@@ -13,6 +14,7 @@ loadSettings();
 browser.storage.onChanged.addListener(loadSettings)
 
 function loadSettings() {
+  ready = false;
   browser.storage.local.get("osuFolder",
     items => {
       osuFolder = items.osuFolder;
@@ -47,6 +49,12 @@ nativePort.onMessage.addListener((obj) => {
   switch (obj["operation"]) {
     case "status":
       console.log("Status changed to " + obj["status"]);
+      if(obj["status"] == "Ready"){
+        ready = true;
+        sendToAllPorts({
+          operation: "ready"
+        });
+      }
       break;
 
     case "collections":
@@ -78,6 +86,16 @@ browser.browserAction.onClicked.addListener(() => {
 function connected(port) {
   console.log("Connection from tab established: " + port.sender.tab.id)
   ports[port.sender.tab.id] = port;
+
+  port.postMessage({
+    operation: "connected"
+  });
+
+  if(ready){
+    port.postMessage({
+      operation: "ready"
+    });
+  }
 
   if (collectionsObject) {
     port.postMessage(collectionsObject);
