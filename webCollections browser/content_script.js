@@ -189,21 +189,18 @@ function setupDomModifications() {
         infoContainer.hidden = true;
         let pathButton = document.createElement("button");
         pathButton.id = "path-button";
-        pathButton.className = "btn-osu-big btn-osu-big--beatmapset-header sub-button";
-        pathButton.onclick = promptPath;
+        pathButton.className = "btn-osu-big btn-osu-big--beatmapset-header";
+        pathButton.onclick = openOptions;
         mapInfo.insertBefore(pathButton, mapInfo.children[1]);
         pathButton.textContent = "SetFolder";
     }
 }
 
-function promptPath(){
-    let path = prompt("Enter your osu directory", "C:/Users/<Username>/AppData/Local/osu!");
-    if(path !== null){
-        port.postMessage({
-            operation: "osuFolder",
-            osuFolder: path
-        });
-    }
+function openOptions(){
+    console.log("Requesting Options");
+    port.postMessage({
+        operation: "openSettings"
+    });
 }
 
 function messageHandler(obj) {
@@ -268,7 +265,7 @@ function messageHandler(obj) {
             console.log("Require osu folder: " + obj["requireOsuFolder"]);
             requireOsuFolder = obj["requireOsuFolder"];
             setupDomModifications();
-            if(requireOsuFolder){
+            if(!requireOsuFolder){
                 loadCurrentMap();
             }
             break;

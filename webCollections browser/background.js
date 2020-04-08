@@ -8,27 +8,27 @@ var collectionsObject = null;
 
 // load osu path
 var osuFolder = null;
-browser.storage.local.get("osuFolder", 
-  items => {
-    osuFolder = items.osuFolder;
-    console.log(`osu folder set to ${osuFolder}`);
-    if(osuFolder){
-      nativePort.postMessage({
-        operation: "osuFolder",
-        osuFolder: osuFolder
-      });
+loadSettings();
+
+browser.storage.onChanged.addListener(loadSettings)
+
+function loadSettings() {
+  browser.storage.local.get("osuFolder",
+    items => {
+      osuFolder = items.osuFolder;
+      console.log(`osu folder set to ${osuFolder}`);
+      if (osuFolder) {
+        nativePort.postMessage({
+          operation: "osuFolder",
+          osuFolder: osuFolder
+        });
+      }
       sendToAllPorts({
         operation: "requireOsuFolder",
-        requireOsuFolder: false
+        requireOsuFolder: !osuFolder
       });
-    }
-  });
-
-// // Clear storage
-// browser.storage.local.set({
-//   osuFolder: null
-// });
-
+    });
+}
 
 function sendToAllPorts(obj) {
   ports.forEach(port => port.postMessage(obj));
@@ -79,23 +79,23 @@ function connected(port) {
   console.log("Connection from tab established: " + port.sender.tab.id)
   ports[port.sender.tab.id] = port;
 
-  if(collectionsObject){
+  if (collectionsObject) {
     port.postMessage(collectionsObject);
   }
 
-  if(osuFolder == null){
+  if (!osuFolder) {
     port.postMessage({
       operation: "requireOsuFolder",
       requireOsuFolder: true
     });
-  }  
+  }
 
   // cs Message handler
   port.onMessage.addListener(function (obj) {
     if (obj.port != null && obj.port == "native") {
-      if(osuFolder == null){
+      if (!osuFolder) {
         console.log(`Not redirecting ${obj["operation"]} to native host due to no osuFolder`);
-        return;  
+        return;
       }
 
       console.log(`Redirecting ${obj["operation"]} to native host`);
@@ -109,17 +109,9 @@ function connected(port) {
         downloadPacketHandler(obj);
         break;
 
-      case "osuFolder":
-        osuFolder = obj["osuFolder"];
-        console.log(`osu folder set to ${osuFolder}`);
-        browser.storage.local.set({
-          osuFolder: osuFolder
-        });
-        nativePort.postMessage(obj);
-        sendToAllPorts({
-          operation: "requireOsuFolder",
-          requireOsuFolder: false
-        });
+      case "openSettings":
+        console.log("Opening Options");
+        browser.runtime.openOptionsPage();
         break;
 
       default:
