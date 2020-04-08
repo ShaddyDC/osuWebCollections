@@ -55,6 +55,10 @@ nativePort.onMessage.addListener((obj) => {
       sendToAllPorts(obj);
       break;
 
+    case "pong":
+      console.log("Recieved response pong!");
+      break;
+
     default:
       console.log(`Not handling ${obj["operation"].toString()} operation from native host`);
       console.log(obj);
@@ -66,10 +70,8 @@ nativePort.onMessage.addListener((obj) => {
 On a click on the browser action, send the app a message.
 */
 browser.browserAction.onClicked.addListener(() => {
-  obj = { operation: "ping" }
-  console.log("Sending:  ");
-  console.log(obj)
-  nativePort.postMessage(obj);
+  console.log("Pinging native host");
+  nativePort.postMessage({ operation: "ping");
 });
 
 // messages from content
