@@ -83,40 +83,47 @@ namespace webCollections
         void HandleOperation()
         {
             var obj = ExtensionCommunicator.Read();
-            switch (obj["operation"].ToString())
-            {
-                case "mapCollections":
-                    HandleMapCollections(obj);
-                    break;
+            if (obj == null) return;
 
-                case "mapExistence":
-                    HandleMapExistence(obj);
-                    break;
+            //try { 
+                switch (obj["operation"].ToString())
+                {
+                    case "mapCollections":
+                        HandleMapCollections(obj);
+                        break;
 
-                case "addMapCollection":
-                    HandleAddMapCollection(obj);
-                    break;
+                    case "mapExistence":
+                        HandleMapExistence(obj);
+                        break;
 
-                case "removeMapCollection":
-                    HandleRemoveMapCollection(obj);
-                    break;
+                    case "addMapCollection":
+                        HandleAddMapCollection(obj);
+                        break;
 
-                case "addMapFile":
-                    HandleAddMapFile(obj);
-                    break;
+                    case "removeMapCollection":
+                        HandleRemoveMapCollection(obj);
+                        break;
 
-                case "osuFolder":
-                    HandleOsuFolder(obj);
-                    break;
+                    case "addMapFile":
+                        HandleAddMapFile(obj);
+                        break;
 
-                case "ping":
-                    ExtensionCommunicator.Write(new JObject { ["operation"] = "pong" });
-                    break;
+                    case "osuFolder":
+                        HandleOsuFolder(obj);
+                        break;
 
-                default:
-                    throw new NotImplementedException($"Not handling operation {obj["operation"]}");
+                    case "ping":
+                        ExtensionCommunicator.Write(new JObject { ["operation"] = "pong" });
+                        break;
 
-            }
+                    default:
+                        throw new NotImplementedException($"Not handling operation {obj["operation"]}");
+                }
+            //}
+            //catch (NullReferenceException e)
+            //{
+            //    File.WriteAllText("nullError", $"Nullreference Exception handling: {e}\n{obj}");
+            //}
         }
 
         static void Main(string[] args)
@@ -127,18 +134,18 @@ namespace webCollections
                 return;
             }
 
-            try
-            {
+            //try
+            //{
                 var program = new Program();
                 while (true)
                 {
                     program.HandleOperation();
                 }
-            }
-            catch(Exception e)
-            {
-                File.WriteAllText("error", e.ToString());
-            }
+            //}
+            //catch(Exception e)
+            //{
+            //    File.WriteAllText("error", e.ToString());
+            //}
         }
     }
 }

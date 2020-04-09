@@ -23,6 +23,10 @@ namespace webCollections
                 reader.Read(buffer);
             }
             var s = new string(buffer);
+
+            if (s == "")
+                return null;
+            File.AppendAllText("packets", $"{s}\n");
             return JsonConvert.DeserializeObject<JObject>(s);
         }
         public static void Write(JObject s)
