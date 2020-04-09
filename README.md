@@ -30,3 +30,5 @@ Requires osu to be installed on the same machine and can only modify the local c
 
 Now the Collections section should appear on beatmap pages. 
 If it's stuck at `loading...` or doesn't show up at all, you may try to reload. 
+
+**Note that for the extension to work properly, osu may not be running while any changes to the collections are made.**
