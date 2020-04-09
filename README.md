@@ -22,10 +22,10 @@ You can now add it to collections like normal.
 
 Requires osu to be installed on the same machine and can only modify the local collections.
 
-1. Place the windows client somewhere
+1. Download, extract and place the windows client somewhere
 1. Run installFirefox.bat
     - If you move this installation, you have to redo this step
-1. Install the Browser Extension
+1. Install the [Browser Extension](https://addons.mozilla.org/en-US/firefox/addon/osuwebcollections/)
 1. Set your osu! folder in the extension
 
 Now the Collections section should appear on beatmap pages. 
