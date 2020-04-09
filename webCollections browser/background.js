@@ -112,11 +112,11 @@ function connected(port) {
   port.onMessage.addListener(function (obj) {
     if (obj.port != null && obj.port == "native") {
       if (!osuFolder) {
-        console.log(`Not redirecting ${obj["operation"]} to native host due to no osuFolder`);
+        console.log(`Not redirecting ${obj["operation"]} from ${port.sender.tab.id} to native host due to no osuFolder`);
         return;
       }
 
-      console.log(`Redirecting ${obj["operation"]} to native host`);
+      console.log(`Redirecting ${obj["operation"]} from ${port.sender.tab.id} to native host`);
       obj["port"] = port.sender.tab.id;
       nativePort.postMessage(obj);
       return;
