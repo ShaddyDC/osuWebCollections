@@ -26,7 +26,7 @@ Requires osu to be installed on the same machine and can only modify the local c
 1. Run installFirefox.bat
     - If you move this installation, you have to redo this step
 1. Install the [Browser Extension](https://addons.mozilla.org/en-US/firefox/addon/osuwebcollections/)
-1. Set your osu! folder in the extension
+1. Set your osu! folder in the extension ![](https://i.imgur.com/4YZ59yk.png)
 
 Now the Collections section should appear on beatmap pages. 
 If it's stuck at `loading...` or doesn't show up at all, you may try to reload. 
