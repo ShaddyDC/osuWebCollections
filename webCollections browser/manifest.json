@@ -31,7 +31,7 @@
     },
     "content_scripts": [
         {
-            "matches": ["*://osu.ppy.sh/beatmapsets/*"],
+            "matches": ["*://osu.ppy.sh/*"],
             "js": ["content_script.js"]
         }
     ]
