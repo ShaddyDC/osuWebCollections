@@ -17,7 +17,7 @@ function createFilename() {
 
 function hashToId(hash){
     let matches = hash.match(/#?(osu|mania|taiko|fruits)\/(\d+)/);
-    if (matches.length != 3) {
+    if (matches == null || matches.length != 3) {
         console.log("mapId not found");
         return null;
     }
@@ -295,7 +295,7 @@ function messageHandler(obj) {
 }
 
 function loadMap(id){
-    if(requireOsuFolder) return;
+    if(requireOsuFolder || id == null) return;
 
     console.log(`Loading map ${id}`);
     if (id) {
