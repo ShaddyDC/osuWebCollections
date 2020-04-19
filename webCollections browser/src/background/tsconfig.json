@@ -1,0 +1,17 @@
+{
+    "compileOnSave": false,
+    "files": [
+      "./background.ts"
+    ],
+    "compilerOptions": {
+      "outFile": "../../background.js",
+      "sourceMap": true,
+      "module": "amd",
+      "declaration": false,
+      "experimentalDecorators": true,
+      "lib": [
+        "es2016",
+        "dom"
+      ]
+    }
+  }

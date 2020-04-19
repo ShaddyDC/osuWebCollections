@@ -1,0 +1,14 @@
+{
+  "name": "webcollections-browser",
+  "version": "0.1.0",
+  "description": "Edit local osu collections on beatmap page",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p src/background && tsc -p src/content && tsc -p src/options && tsc -p src/popup"
+  },
+  "author": "Shaddy",
+  "license": "MIT",
+  "dependencies": {
+    "typescript": "^3.8.3"
+  }
+}
