@@ -27,12 +27,12 @@
         "browser_style": true
     },
     "background": {
-        "scripts": ["background.js"]
+        "scripts": ["dist/background/background.js"]
     },
     "content_scripts": [
         {
             "matches": ["*://osu.ppy.sh/*"],
-            "js": ["content_script.js"]
+            "js": ["dist/content/content_script.js"]
         }
     ]
 }

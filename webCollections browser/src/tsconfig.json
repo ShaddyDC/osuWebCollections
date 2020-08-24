@@ -1,0 +1,12 @@
+{
+  "extends": "../node_modules/eslint-config-xtrict/tsconfig.json",
+  "include": [ "./**/*" ],
+  "exclude": [ "./tsconfig.json" ],
+  "compilerOptions": {
+    "sourceMap": true,
+    "declaration": false,
+    "target": "ES2015",
+    "lib": [ "esnext", "dom" ],
+    "strict": true
+  }
+}
