@@ -8,7 +8,7 @@
     },
     "browser_specific_settings": {
         "gecko": {
-          "id": "webCollections@shaddy.dev",
+          "id": "webcollections@shaddy.dev",
           "strict_min_version": "57.0"
         }
       },

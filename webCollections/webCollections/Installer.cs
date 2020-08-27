@@ -16,58 +16,87 @@ namespace webCollections
         private static readonly string linuxFile = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), "launch.sh");
         private static readonly string launchFile = isWindows ? windowsFile : linuxFile;
 
-        private static readonly string connectorContent =
-$@"{{
-  ""name"": ""webCollections"",
+        enum Browser
+        {
+            chrome, firefox
+        }
+        
+        private static string connectorContent(Browser browser)
+        {
+            var allowedKey = browser switch
+            {
+                Browser.chrome => "allowed_origins",
+                Browser.firefox => "allowed_extensions",
+                _ => ""
+            };
+            var allowedValue = browser switch
+            {
+                Browser.chrome => "chrome-extension://pplnclfbilfnbjcdbjeoajbageakgjfa/",
+                Browser.firefox => "webcollections@shaddy.dev",
+                _ => ""
+            };
+            
+            
+            return $@"{{
+  ""name"": ""dev.shaddy.webcollections"",
   ""description"": ""Example host for native messaging"",
   ""path"": ""{launchFile}"",
   ""type"": ""stdio"",
-  ""allowed_extensions"": [""webCollections@shaddy.dev""]
-  ""allowed_origins"": [""webCollections@shaddy.dev""]
+  ""{allowedKey}"": [""{allowedValue}""]
 }}";
-        
+        }
+
         private static readonly string linuxLaunchContent = $"#!/bin/sh\nDIR=\"$( cd \"$( dirname \"${{BASH_SOURCE[0]}}\" )\" >/dev/null 2>&1 && pwd )\"\ndotnet \"$DIR/{Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location)}\"";
 
-        private static readonly string[] key_folders =
+        private static readonly string[] firefoxRegistryFolders =
         {
-                @"SOFTWARE\Mozilla\NativeMessagingHosts",
-                @"SOFTWARE\Mozilla\ManagedStorage",
-                @"SOFTWARE\Mozilla\PKCS11Modules"
-            };
+            @"SOFTWARE\Mozilla\NativeMessagingHosts",
+            @"SOFTWARE\Mozilla\ManagedStorage",
+            @"SOFTWARE\Mozilla\PKCS11Modules"
+        };
 
-        static internal void InstallFirefox()
+        static internal void Install()
         {
-            var file = "dev.shaddy.webCollections.json";
+            var file = "dev.shaddy.webcollections.json";
 
             if (isWindows)
+            {
                 file = Path.GetFullPath(file);
+                Console.WriteLine($"Creating {file}...");
+                File.WriteAllText(file, connectorContent(Browser.firefox));
+                
+                Console.WriteLine($"Pointing registry to file...");
+                foreach (var key_folder in firefoxRegistryFolders)
+                {
+                    var key = Registry.CurrentUser.CreateSubKey(Path.Combine(key_folder, "webcollections"));
+                    key.SetValue("", file);
+                }
+            }
             else
             {
-                // file = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                //     ".config/google-chrome/NativeMessagingHosts", file);
-                file = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                var chromeFile = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    ".config/google-chrome/NativeMessagingHosts", file);
+                var firefoxFile = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                     ".mozilla/native-messaging-hosts", file);
-            }
 
-            Console.WriteLine($"Creating {file}...");
-            File.WriteAllText(file, connectorContent);
+                if (Directory.Exists(Path.GetFullPath(chromeFile)))
+                {
+                    Console.WriteLine($"Creating {chromeFile}...");
+                    File.WriteAllText(chromeFile, connectorContent(Browser.chrome));
+                    Exec($"chmod o+r {chromeFile}");
+                }
 
-            if (!isWindows)
-            {
+
+                if (Directory.Exists(Path.GetFullPath(firefoxFile)))
+                {
+                    Console.WriteLine($"Creating {firefoxFile}...");
+                    File.WriteAllText(firefoxFile, connectorContent(Browser.firefox));
+                    Exec($"chmod o+r {firefoxFile}");
+                }
+
                 Console.WriteLine($"Adding launch file and making it executable");
                 File.WriteAllText(linuxFile, linuxLaunchContent);
                 Exec($"chmod +x \"{linuxFile}\"");
-            }
-
-
-            if (isWindows)
-            {
-                Console.WriteLine($"Pointing registry to file...");
-                foreach (var key_folder in key_folders)
-                {
-                    var key = Registry.CurrentUser.CreateSubKey(Path.Combine(key_folder, "webCollections"));
-                    key.SetValue("", file);
-                }
             }
 
             Console.WriteLine("Installed!");
