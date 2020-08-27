@@ -37,15 +37,5 @@ namespace webCollections
             stdout.Write(bytes);
             stdout.Flush();
         }
-
-        public static void SendStatus(string status)
-        {
-            var obj = new JObject
-            {
-                ["operation"] = "status",
-                ["status"] = status
-            };
-            Write(obj);
-        }
     }
 }

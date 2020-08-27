@@ -12,9 +12,29 @@ namespace webCollections
     class Program
     {
         OsuManager osuManager;
+        private bool running = true;
         Program()
         {
-            ExtensionCommunicator.SendStatus("Waiting for osu folder");
+            SendStatus("Waiting for osu folder");
+        }
+
+        enum OperationType
+        {
+            ping,
+            pong,
+            error,
+            status,
+            exit,
+        }
+        
+        public static void SendStatus(string status)
+        {
+            var obj = new JObject
+            {
+                ["operation"] = (int)OperationType.status,
+                ["status"] = status
+            };
+            ExtensionCommunicator.Write(obj);
         }
 
         void HandleMapCollections(JObject obj)
@@ -64,9 +84,9 @@ namespace webCollections
         void HandleOsuFolder(JObject obj)
         {
             var folder = obj["osuFolder"].ToString();
-            ExtensionCommunicator.SendStatus("Loading databases");
+            SendStatus("Loading databases");
             osuManager = new OsuManager(folder);
-            ExtensionCommunicator.SendStatus("Ready");
+            SendStatus("Ready");
             SendCollections();
         }
 
@@ -85,47 +105,38 @@ namespace webCollections
             var obj = ExtensionCommunicator.Read();
             if (obj == null) return;
 
+            if (!obj.ContainsKey("operation") || obj["operation"] == null)
+            {
+                obj["operation"] = (int)OperationType.error;
+                obj["error"] = "No operation specified";
+                ExtensionCommunicator.Write(obj);
+                return;
+            }
+
             try { 
-                switch (obj["operation"].ToString())
+                switch ((OperationType)obj["operation"].ToObject<int>())
                 {
-                    case "mapCollections":
-                        HandleMapCollections(obj);
+                    case OperationType.ping:
+                        obj["operation"] = (int)OperationType.pong;
+                        ExtensionCommunicator.Write(obj);
                         break;
-
-                    case "mapExistence":
-                        HandleMapExistence(obj);
+                    case OperationType.exit:
+                        running = false;
+                        SendStatus("Exiting...");
                         break;
-
-                    case "addMapCollection":
-                        HandleAddMapCollection(obj);
-                        break;
-
-                    case "removeMapCollection":
-                        HandleRemoveMapCollection(obj);
-                        break;
-
-                    case "addMapFile":
-                        HandleAddMapFile(obj);
-                        break;
-
-                    case "osuFolder":
-                        HandleOsuFolder(obj);
-                        break;
-
-                    case "ping":
-                        ExtensionCommunicator.Write(new JObject { ["operation"] = "pong" });
-                        break;
-
+                    
                     default:
-                        obj["Error"] = "Unsupported operation";
+                        obj["operation"] = (int)OperationType.error;
+                        obj["error"] = "Unsupported operation";
                         ExtensionCommunicator.Write(obj);
                         break;
                 }
             }
-            catch (NullReferenceException e)
+            catch (Exception e)
             {
-                File.WriteAllText("error", e.ToString());
-                obj["Error"] = $"Nullreference Exception handling: {e}\n{obj}";
+                obj["obj"] = obj;
+                obj["operation"] = "error";
+                obj["error"] = $"Exception: {e}";
                 ExtensionCommunicator.Write(obj);
             }
         }
@@ -134,22 +145,15 @@ namespace webCollections
         {
             if(args.Length == 1 && args[0] == "installFirefox")
             {
-                Installer.InstallFirefox();
+                Installer.Install();
                 return;
             }
 
-            // try
-            // {
-                var program = new Program();
-                while (true)
-                {
-                    program.HandleOperation();
-                }
-            // }
-            // catch(Exception e)
-            // {
-            //     File.WriteAllText("error", e.ToString());
-            // }
+            var program = new Program();
+            while (program.running)
+            {
+                program.HandleOperation();
+            }
         }
     }
 }
