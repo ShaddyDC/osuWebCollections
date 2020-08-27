@@ -85,7 +85,7 @@ namespace webCollections
             var obj = ExtensionCommunicator.Read();
             if (obj == null) return;
 
-            //try { 
+            try { 
                 switch (obj["operation"].ToString())
                 {
                     case "mapCollections":
@@ -117,13 +117,17 @@ namespace webCollections
                         break;
 
                     default:
-                        throw new NotImplementedException($"Not handling operation {obj["operation"]}");
+                        obj["Error"] = "Unsupported operation";
+                        ExtensionCommunicator.Write(obj);
+                        break;
                 }
-            //}
-            //catch (NullReferenceException e)
-            //{
-            //    File.WriteAllText("nullError", $"Nullreference Exception handling: {e}\n{obj}");
-            //}
+            }
+            catch (NullReferenceException e)
+            {
+                File.WriteAllText("error", e.ToString());
+                obj["Error"] = $"Nullreference Exception handling: {e}\n{obj}";
+                ExtensionCommunicator.Write(obj);
+            }
         }
 
         static void Main(string[] args)
@@ -134,18 +138,18 @@ namespace webCollections
                 return;
             }
 
-            //try
-            //{
+            // try
+            // {
                 var program = new Program();
                 while (true)
                 {
                     program.HandleOperation();
                 }
-            //}
-            //catch(Exception e)
-            //{
-            //    File.WriteAllText("error", e.ToString());
-            //}
+            // }
+            // catch(Exception e)
+            // {
+            //     File.WriteAllText("error", e.ToString());
+            // }
         }
     }
 }
