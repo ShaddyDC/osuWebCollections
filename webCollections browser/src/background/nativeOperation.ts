@@ -4,7 +4,8 @@ export enum NativeOperationType{
     error,
     status,
     exit,
-    
+    osuFolder,
+
 }
 
 export class NativeOperation{
@@ -18,4 +19,13 @@ export class NativeOperation{
 
 export class NativeStatusOperation extends NativeOperation{
     status!: string;
+}
+
+export class NativeOsuFolderOperation extends NativeOperation{
+    constructor(osuFolder: string)
+    {
+        super(NativeOperationType.osuFolder);
+        this.osuFolder = osuFolder;
+    }
+    osuFolder: string;
 }

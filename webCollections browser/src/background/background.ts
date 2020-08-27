@@ -1,9 +1,25 @@
 import { browser, Runtime } from "webextension-polyfill-ts";
-import { OperationType, Operation } from "../shared/backContComm";
+import * as Content from "../shared/backContComm";
 import * as Native from "./nativeOperation";
 
 var ports : Array<Runtime.Port> = [];
 var nativePort: Runtime.Port;
+var osuFolder: string | null = null;
+
+function loadSettings(){
+    sendToAllPorts(new Content.OsuFolderStatusOperation(false));
+    function loader(items: any){
+        osuFolder = items.osuFolder;
+        console.log(`osuFolder set to ${osuFolder}`);
+        
+        if(osuFolder != null && osuFolder != ""){
+            nativePort.postMessage(new Native.NativeOsuFolderOperation(osuFolder));
+        }
+        
+    }
+
+    browser.storage.local.get("osuFolder").then(loader);
+}
 
 function contentConnectHandler(port: Runtime.Port){
     console.log(`Connection from port ${port.name} with id ${port.sender?.id} at url ${port.sender?.url}`);
@@ -14,7 +30,7 @@ function contentConnectHandler(port: Runtime.Port){
     }
     ports[port.sender?.tab?.id] = port;
 
-    port.postMessage(new Operation(OperationType.ready));
+    port.postMessage(new Content.Operation(Content.OperationType.ready));
 }
 
 function nativeHandler(message: Native.NativeOperation){
@@ -48,6 +64,10 @@ function killNative(){
     nativePort.postMessage(new Native.NativeOperation(Native.NativeOperationType.exit));
 }
 
+function sendToAllPorts(obj: Content.Operation){
+    ports.forEach(port => port.postMessage(obj));
+}
+
 function main(){
     console.log("Started osu!collections!");
 
@@ -59,6 +79,9 @@ function main(){
 
     // Ping host when icon is clicked
     browser.browserAction.onClicked.addListener(killNative);
+
+    loadSettings();
+    browser.storage.onChanged.addListener(loadSettings);
 }
 
 main();

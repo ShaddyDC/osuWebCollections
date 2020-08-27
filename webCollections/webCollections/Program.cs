@@ -25,6 +25,7 @@ namespace webCollections
             error,
             status,
             exit,
+            osuFolder,
         }
         
         public static void SendStatus(string status)
@@ -34,6 +35,14 @@ namespace webCollections
                 ["operation"] = (int)OperationType.status,
                 ["status"] = status
             };
+            ExtensionCommunicator.Write(obj);
+        }
+
+        void SendError(JObject obj, string error)
+        {
+            obj["obj"] = obj;
+            obj["operation"] = (int)OperationType.error;
+            obj["error"] = error;
             ExtensionCommunicator.Write(obj);
         }
 
@@ -83,6 +92,11 @@ namespace webCollections
 
         void HandleOsuFolder(JObject obj)
         {
+            if (obj["osuFolder"] == null)
+            {
+                SendError(obj, "osuFolder Operation requires osuFolder to be set");
+                return;
+            }
             var folder = obj["osuFolder"].ToString();
             SendStatus("Loading databases");
             osuManager = new OsuManager(folder);
@@ -107,9 +121,7 @@ namespace webCollections
 
             if (!obj.ContainsKey("operation") || obj["operation"] == null)
             {
-                obj["operation"] = (int)OperationType.error;
-                obj["error"] = "No operation specified";
-                ExtensionCommunicator.Write(obj);
+                SendError(obj, "No operation specified");
                 return;
             }
 
@@ -125,18 +137,18 @@ namespace webCollections
                         SendStatus("Exiting...");
                         break;
                     
+                    case OperationType.osuFolder:
+                        HandleOsuFolder(obj);
+                        break;
+                    
                     default:
-                        obj["operation"] = (int)OperationType.error;
-                        obj["error"] = "Unsupported operation";
-                        ExtensionCommunicator.Write(obj);
+                        SendError(obj, "Unsupported Operation");
                         break;
                 }
             }
             catch (Exception e)
             {
-                obj["obj"] = obj;
-                obj["operation"] = "error";
-                obj["error"] = $"Exception: {e}";
+                SendError(obj, $"Exception: {e}");
                 ExtensionCommunicator.Write(obj);
             }
         }
