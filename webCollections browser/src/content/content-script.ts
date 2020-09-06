@@ -41,8 +41,9 @@ function handleMapCollections(message: Background.MapCheckResultsOperation): voi
         return;
     }
     console.log("Received mapCheckResults!", message);
-    console.log("Map is available: ", message.available);
-    console.log("Map is in collections: ", message.mapCollections);
+    if(message.available && message.mapCollections){
+        dom.setMapCollections(message.mapCollections);
+    }
 }
 
 function currentMapString(): string{

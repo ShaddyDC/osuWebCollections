@@ -35,6 +35,29 @@ export class DomStuffs{
         });
     }
 
+    clearMapCollections(): void{
+        let collectionsList = document.getElementById("collections-list");
+        if(collectionsList) collectionsList.innerHTML = "";
+    }
+
+    setMapCollections(collections: [string]): void{
+        let collectionsList = document.getElementById("collections-list");
+        if(!collectionsList) return;
+
+        function createNode(collection: string): Array<HTMLElement>{
+            let node = document.createElement("a");
+            node.innerText = collection;
+            node.onclick = ()=>console.log("Clicked", collection);
+            return [ node, document.createElement("br") ];
+        }
+
+        this.clearMapCollections();
+        collections.forEach(collection =>{
+            const nodes = createNode(collection);
+            nodes.forEach(node => collectionsList?.appendChild(node));
+        });
+    }
+
     private createCollectionsContainer(): void {
         // get mapsetinfo to insert data
         let mapsetInfo = document.getElementsByClassName("beatmapset-info").item(0);
@@ -81,9 +104,7 @@ export class DomStuffs{
             return;
 
         this.clearInputCollections();
-
-        let collectionsList = document.getElementById("collections-list");
-        if(collectionsList) collectionsList.innerHTML = "";
+        this.clearMapCollections();
     }
 
     private beatmapChangeCallback(): void{
