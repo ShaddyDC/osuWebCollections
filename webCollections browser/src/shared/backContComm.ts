@@ -2,6 +2,7 @@
 export enum OperationType {
     ready,
     osuFolderStatus,
+    collections,
 }
 
 export class Operation {
@@ -21,4 +22,16 @@ export class OsuFolderStatusOperation extends Operation{
     }
     
     loaded!: boolean;
+}
+
+
+
+export class CollectionsOperation extends Operation{
+    constructor(collections: [string])
+    {
+        super(OperationType.collections);
+        this.collections = collections;
+    }
+    
+    collections!: [string];
 }

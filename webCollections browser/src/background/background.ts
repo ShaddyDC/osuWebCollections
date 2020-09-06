@@ -5,20 +5,30 @@ import * as Native from "./nativeOperation";
 var ports : Array<Runtime.Port> = [];
 var nativePort: Runtime.Port;
 var osuFolder: string | null = null;
+var collections: [string];
+var loaded: boolean = false;
 
 function loadSettings(){
-    sendToAllPorts(new Content.OsuFolderStatusOperation(false));
+    setReadyStatus(false);
     function loader(items: any){
         osuFolder = items.osuFolder;
         console.log(`osuFolder set to ${osuFolder}`);
         
         if(osuFolder != null && osuFolder != ""){
             nativePort.postMessage(new Native.NativeOsuFolderOperation(osuFolder));
-        }
-        
+        }        
     }
 
     browser.storage.local.get("osuFolder").then(loader);
+}
+
+function setReadyStatus(status: boolean){
+    loaded = status;
+    sendToAllPorts(new Content.OsuFolderStatusOperation(status));
+}
+
+function shareCollections(){
+    sendToAllPorts(new Content.CollectionsOperation(collections));
 }
 
 function contentConnectHandler(port: Runtime.Port){
@@ -31,6 +41,10 @@ function contentConnectHandler(port: Runtime.Port){
     ports[port.sender?.tab?.id] = port;
 
     port.postMessage(new Content.Operation(Content.OperationType.ready));
+    if(loaded) {
+        port.postMessage(new Content.OsuFolderStatusOperation(true));
+        port.postMessage(new Content.CollectionsOperation(collections));
+    }
 }
 
 function nativeHandler(message: Native.NativeOperation){
@@ -46,6 +60,13 @@ function nativeHandler(message: Native.NativeOperation){
         case Native.NativeOperationType.status:
             let status = message as Native.NativeStatusOperation;
             console.log(`Native status: ${status.status}`);
+            break;
+
+        case Native.NativeOperationType.collections:
+            collections = JSON.parse((message as Native.NativeCollectionsOperation).collections);
+            console.log("Updating collections", collections);
+            setReadyStatus(true);
+            shareCollections();
             break;
     
         default:

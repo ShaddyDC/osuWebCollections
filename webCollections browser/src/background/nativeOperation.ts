@@ -5,6 +5,7 @@ export enum NativeOperationType{
     status,
     exit,
     osuFolder,
+    collections,
 
 }
 
@@ -28,4 +29,11 @@ export class NativeOsuFolderOperation extends NativeOperation{
         this.osuFolder = osuFolder;
     }
     osuFolder: string;
+}
+
+export class NativeCollectionsOperation extends NativeOperation{
+    getCollections(){
+        return JSON.parse(this.collections);
+    }
+    collections!: string;
 }

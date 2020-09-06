@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OsuParsers.Database;
 using OsuParsers.Decoders;
@@ -27,6 +27,7 @@ namespace webCollections
             status,
             exit,
             osuFolder,
+            collections,
         }
         
         public static void SendStatus(string status)
@@ -109,7 +110,7 @@ namespace webCollections
         {
             var obj = new JObject
             {
-                ["operation"] = "collections",
+                ["operation"] = (int)OperationType.collections,
                 ["collections"] = JsonConvert.SerializeObject(osuManager.Collections())
             };
             ExtensionCommunicator.Write(obj);
