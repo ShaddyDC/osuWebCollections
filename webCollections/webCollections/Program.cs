@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OsuParsers.Database;
 using OsuParsers.Decoders;
@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace webCollections
 {
@@ -165,6 +166,7 @@ namespace webCollections
             while (program.running)
             {
                 program.HandleOperation();
+                Thread.Sleep(10);
             }
         }
     }
