@@ -14,6 +14,24 @@ export class DomStuffs{
         }
     }
 
+    clearInputCollections(): void{
+        let inputList = document.getElementById("collections-input-list");
+        if(inputList) inputList.innerHTML = "";
+    }
+
+    setInputCollections(collections: [string]): void{
+        let inputList = document.getElementById("collections-input-list");
+        if(!inputList) return;
+
+        this.clearInputCollections();
+
+        collections.forEach(collection => {
+            let option = document.createElement("option");
+            option.value = collection;
+            inputList?.appendChild(option);
+        });
+    }
+
     private createCollectionsContainer(): void {
         // get mapsetinfo to insert data
         let mapsetInfo = document.getElementsByClassName("beatmapset-info").item(0);
@@ -59,8 +77,7 @@ export class DomStuffs{
         if(document.getElementById("collections-container") == null)
             return;
 
-        let inputList = document.getElementById("collections-input-list");
-        if(inputList) inputList.innerHTML = "";
+        this.clearInputCollections();
 
         let collectionsList = document.getElementById("collections-list");
         if(collectionsList) collectionsList.innerHTML = "";

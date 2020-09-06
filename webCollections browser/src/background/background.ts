@@ -6,7 +6,7 @@ var ports : Array<Runtime.Port> = [];
 var nativePort: Runtime.Port;
 var osuFolder: string | null = null;
 var collections: [string];
-var loaded: boolean = false;
+var hostReady: boolean = false;
 
 function loadSettings(): void{
     setReadyStatus(false);
@@ -23,8 +23,8 @@ function loadSettings(): void{
 }
 
 function setReadyStatus(status: boolean): void{
-    loaded = status;
-    sendToAllPorts(new Content.OsuFolderStatusOperation(status));
+    hostReady = status;
+    sendToAllPorts(new Content.HostReadyOperation(status));
 }
 
 function shareCollections(): void{
@@ -41,8 +41,8 @@ function contentConnectHandler(port: Runtime.Port): void{
     ports[port.sender?.tab?.id] = port;
 
     port.postMessage(new Content.Operation(Content.OperationType.ready));
-    if(loaded) {
-        port.postMessage(new Content.OsuFolderStatusOperation(true));
+    if(hostReady) {
+        port.postMessage(new Content.HostReadyOperation(true));
         port.postMessage(new Content.CollectionsOperation(collections));
     }
 }
