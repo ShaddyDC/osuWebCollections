@@ -39,6 +39,7 @@ function contentConnectHandler(port: Runtime.Port): void{
         return;
     }
     ports[port.sender?.tab?.id] = port;
+    port.onMessage.addListener(contentHandler);
 
     port.postMessage(new Content.Operation(Content.OperationType.ready));
     if(hostReady) {
@@ -63,16 +64,56 @@ function nativeHandler(message: Native.NativeOperation): void{
             break;
 
         case Native.NativeOperationType.collections:
-            collections = JSON.parse((message as Native.NativeCollectionsOperation).collections);
+            collections = JSON.parse((message as Native.NativeCollectionsOperation).collectionsJSON);
             console.log("Updating collections", collections);
             setReadyStatus(true);
             shareCollections();
+            break;
+
+        case Native.NativeOperationType.mapCheck:
+            handleMapCheckResults(message as Native.NativeMapCheckOperation);
             break;
     
         default:
             console.warn("Unknown operation from native host!", message);
             break;
     }
+}
+
+function contentHandler(message: Content.Operation, port: Runtime.Port): void{
+    switch (message.operation) {
+        case Content.OperationType.mapCheck:
+            handleMapCheck(message as Content.MapCheckOperation, port);
+            break;
+    
+        default:
+            console.warn(`Unknown operation from port ${port.sender?.tab?.id}!`, message);
+            break;
+    }
+}
+
+function handleMapCheckResults(message: Native.NativeMapCheckOperation): void{
+    console.log(`Redirecting mapCheck results to port ${message.origin}`, message);
+
+    let mapCollections = undefined;
+    if(message.available && message.mapCollectionsJSON){
+        mapCollections = JSON.parse(message.mapCollectionsJSON);
+    }
+
+    ports[message.origin].postMessage(new Content.MapCheckResultsOperation(
+        message.mapId, message.available!, mapCollections
+    ));
+}
+
+function handleMapCheck(message: Content.MapCheckOperation, port: Runtime.Port){
+    const origin = port.sender?.tab?.id;
+    if(!origin){
+        console.warn("Map Check from unknown port", port, message);
+        return;
+    }
+
+    console.log(`Map Check for ${message.mapId} from ${origin}`);
+    nativePort.postMessage(new Native.NativeMapCheckOperation(message.mapId, origin));
 }
 
 function ping(): void{

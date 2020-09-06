@@ -12,6 +12,9 @@ export class DomStuffs{
         if(beatmapPicker){
             this.beatmapObserver.observe(beatmapPicker, {attributes: true, subtree: true});
         }
+        else{
+            console.warn("Couldn't place mutation observer to see beatmap changes!");
+        }
     }
 
     clearInputCollections(): void{

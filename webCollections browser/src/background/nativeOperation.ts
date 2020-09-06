@@ -6,7 +6,7 @@ export enum NativeOperationType{
     exit,
     osuFolder,
     collections,
-
+    mapCheck,
 }
 
 export class NativeOperation{
@@ -32,8 +32,19 @@ export class NativeOsuFolderOperation extends NativeOperation{
 }
 
 export class NativeCollectionsOperation extends NativeOperation{
-    getCollections(): [string]{
-        return JSON.parse(this.collections);
+    collectionsJSON!: string;
+}
+
+export class NativeMapCheckOperation extends NativeOperation{
+    constructor(mapId: string, origin: number)
+    {
+        super(NativeOperationType.mapCheck);
+        this.mapId = mapId;
+        this.origin = origin;
     }
-    collections!: string;
+
+    mapId: string;
+    origin: number;
+    available: boolean | undefined;
+    mapCollectionsJSON: string | undefined;
 }

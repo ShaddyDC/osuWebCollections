@@ -7,7 +7,6 @@ var dom: DomStuffs = new DomStuffs();
 var hostReady = false;
 
 function backgroundHandler(message: Background.Operation): void {
-
     switch (message.operation) {
         case Background.OperationType.ready:
             console.log("Tab is ready!");
@@ -16,7 +15,8 @@ function backgroundHandler(message: Background.Operation): void {
         case Background.OperationType.hostReady:
             hostReady = (message as Background.HostReadyOperation).ready;
             console.log(`Native host is ready ${hostReady}`);
-            if(!hostReady) handleHostUnready;
+            if(!hostReady) handleHostUnready();
+            else loadCurrentMap();
             break;
 
         case Background.OperationType.collections:
@@ -24,11 +24,42 @@ function backgroundHandler(message: Background.Operation): void {
             console.log("Available collections", collections);
             dom.setInputCollections(collections);
             break;
+
+        case Background.OperationType.mapCheckResults:
+            handleMapCollections(message as Background.MapCheckResultsOperation);
+            break;
     
         default:
             console.warn("Unknown operation from native host!", message);
             break;
     }
+}
+
+function handleMapCollections(message: Background.MapCheckResultsOperation): void{
+    if(message.mapId != currentMapId()) {
+        console.log("Received mapCheckResults for different map (old?)", message);
+        return;
+    }
+    console.log("Received mapCheckResults!", message);
+    console.log("Map is available: ", message.available);
+    console.log("Map is in collections: ", message.mapCollections);
+}
+
+function currentMapString(): string{
+    let mapLink = document.getElementsByClassName("beatmapset-beatmap-picker__beatmap--active")[0] as HTMLLinkElement;
+    return mapLink.getAttribute("href") ?? "";
+}
+
+function currentMapId(): string{
+    return currentMapString().split("/")[1];
+}
+
+function loadCurrentMap(): void{
+    if(!hostReady) return;
+
+    const mapId = currentMapId();
+    console.log(`Loading map ${mapId}`);
+    port.postMessage(new Background.MapCheckOperation(mapId));
 }
 
 function handleHostUnready(): void{
@@ -47,7 +78,7 @@ function main(): void {
 
     dom.setUp();
     connect();
-    dom.registerBeatmapChangeListener(()=>console.log("beatmap changed"));
+    dom.registerBeatmapChangeListener(loadCurrentMap);
 }
 
 main();

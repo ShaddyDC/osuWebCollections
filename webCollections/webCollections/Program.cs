@@ -28,6 +28,7 @@ namespace webCollections
             exit,
             osuFolder,
             collections,
+            mapCheck,
         }
         
         public static void SendStatus(string status)
@@ -48,18 +49,21 @@ namespace webCollections
             ExtensionCommunicator.Write(obj);
         }
 
-        void HandleMapCollections(JObject obj)
+        void HandleMapCheck(JObject obj)
         {
-            var mapId = obj["mapId"].ToObject<int>();
-            var list = osuManager.IdCollections(mapId);
-            obj["mapCollections"] = JsonConvert.SerializeObject(list);
-            ExtensionCommunicator.Write(obj);
-        }
-
-        void HandleMapExistence(JObject obj)
-        {
-            var mapId = obj["mapId"].ToObject<int>();
-            obj["mapExistence"] = osuManager.MapHash(mapId) != null;
+            var mapId = obj["mapId"]?.ToObject<int>();
+            if (mapId == null)
+            {
+                SendError(obj, "mapCheck has no mapId specified");
+                return;
+            }
+            var available = osuManager.MapHash(mapId.Value) != null;
+            obj["available"] = available;
+            if (available)
+            {
+                var list = osuManager.IdCollections(mapId.Value);
+                obj["mapCollectionsJSON"] = JsonConvert.SerializeObject(list);
+            }
             ExtensionCommunicator.Write(obj);
         }
 
@@ -111,7 +115,7 @@ namespace webCollections
             var obj = new JObject
             {
                 ["operation"] = (int)OperationType.collections,
-                ["collections"] = JsonConvert.SerializeObject(osuManager.Collections())
+                ["collectionsJSON"] = JsonConvert.SerializeObject(osuManager.Collections())
             };
             ExtensionCommunicator.Write(obj);
         }
@@ -141,6 +145,10 @@ namespace webCollections
                     
                     case OperationType.osuFolder:
                         HandleOsuFolder(obj);
+                        break;
+                    
+                    case OperationType.mapCheck:
+                        HandleMapCheck(obj);
                         break;
                     
                     default:
