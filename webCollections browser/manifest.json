@@ -32,7 +32,7 @@
     "content_scripts": [
         {
             "matches": ["*://osu.ppy.sh/*"],
-            "js": ["dist/content/content_script.js"]
+            "js": ["dist/content/content-script.js"]
         }
     ]
 }

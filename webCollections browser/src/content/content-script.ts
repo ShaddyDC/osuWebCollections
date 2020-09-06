@@ -1,6 +1,6 @@
 import { browser, Runtime } from "webextension-polyfill-ts";
 import { OperationType, Operation } from "../shared/backContComm";
-import { DomStuffs } from "./dom_stuffs";
+import { DomStuffs } from "./dom-stuffs";
 
 var port: Runtime.Port;
 var dom: DomStuffs = new DomStuffs();
@@ -30,9 +30,7 @@ function main() {
 
     dom.setUp();
     connect();
-    dom.registerBeatmapChangeListener(()=>console.log("beatmap changed"));
-
-    [].forEach(()=>console.log(""));
+    dom.registerBeatmapChangeListener(()=>console.log("beatmap changed"));    
 }
 
 main();

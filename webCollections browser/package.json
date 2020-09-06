@@ -3,20 +3,19 @@
   "version": "0.1.0",
   "description": "Edit local osu collections on beatmap page",
   "scripts": {
-    "build": "parcel build src/background/background.ts src/content/content_script.ts src/options/options.ts src/popup/popup.ts --experimental-scope-hoisting --public-url ./",
-    "watch": "parcel watch src/background/background.ts src/content/content_script.ts src/options/options.ts src/popup/popup.ts --public-url ./"
+    "build": "parcel build src/background/background.ts src/content/content-script.ts src/options/options.ts src/popup/popup.ts --experimental-scope-hoisting --public-url ./",
+    "watch": "parcel watch src/background/background.ts src/content/content-script.ts src/options/options.ts src/popup/popup.ts --public-url ./"
   },
   "author": "Shaddy",
   "license": "MIT",
   "dependencies": {
-    "eslint": "^7.7.0",
-    "eslint-config-xtrict": "^3.0.1",
+    "eslint": "^7.8.1",
     "parcel-bundler": "^1.12.4",
     "parcel-plugin-web-ext-tool": "^0.2.0",
-    "typescript": "^3.9.7",
+    "typescript": "^4.0.2",
     "web-ext": "^5.0.0"
   },
   "devDependencies": {
-    "webextension-polyfill-ts": "^0.14.0"
+    "webextension-polyfill-ts": "^0.19.0"
   }
 }
