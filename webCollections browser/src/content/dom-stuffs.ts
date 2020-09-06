@@ -1,6 +1,6 @@
 
 export class DomStuffs{
-    setUp(){
+    setUp(): void{
         if(document.getElementById("collections-container") == null)
             this.createCollectionsContainer();
         else this.reset();
@@ -14,7 +14,7 @@ export class DomStuffs{
         }
     }
 
-    private createCollectionsContainer() {
+    private createCollectionsContainer(): void {
         // get mapsetinfo to insert data
         let mapsetInfo = document.getElementsByClassName("beatmapset-info").item(0);
         if(!mapsetInfo) return;
@@ -55,7 +55,7 @@ export class DomStuffs{
         section.appendChild(collectionsList);    
     }
 
-    reset(){
+    reset(): void{
         if(document.getElementById("collections-container") == null)
             return;
 
@@ -66,13 +66,13 @@ export class DomStuffs{
         if(collectionsList) collectionsList.innerHTML = "";
     }
 
-    private beatmapChangeCallback(){
+    private beatmapChangeCallback(): void{
         this.beatmapChangeCallbacks.forEach(
             callback => callback()
         );
     }
 
-    registerBeatmapChangeListener(callback: ()=>void){
+    registerBeatmapChangeListener(callback: ()=>void): void{
         this.beatmapChangeCallbacks.push(callback);
     }
 

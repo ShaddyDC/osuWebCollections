@@ -8,7 +8,7 @@ var osuFolder: string | null = null;
 var collections: [string];
 var loaded: boolean = false;
 
-function loadSettings(){
+function loadSettings(): void{
     setReadyStatus(false);
     function loader(items: any){
         osuFolder = items.osuFolder;
@@ -22,16 +22,16 @@ function loadSettings(){
     browser.storage.local.get("osuFolder").then(loader);
 }
 
-function setReadyStatus(status: boolean){
+function setReadyStatus(status: boolean): void{
     loaded = status;
     sendToAllPorts(new Content.OsuFolderStatusOperation(status));
 }
 
-function shareCollections(){
+function shareCollections(): void{
     sendToAllPorts(new Content.CollectionsOperation(collections));
 }
 
-function contentConnectHandler(port: Runtime.Port){
+function contentConnectHandler(port: Runtime.Port): void{
     console.log(`Connection from port ${port.name} with id ${port.sender?.id} at url ${port.sender?.url}`);
 
     if(port.sender?.tab?.id == undefined){
@@ -47,7 +47,7 @@ function contentConnectHandler(port: Runtime.Port){
     }
 }
 
-function nativeHandler(message: Native.NativeOperation){
+function nativeHandler(message: Native.NativeOperation): void{
     switch (message.operation) {
         case Native.NativeOperationType.pong:
             console.log("Pong from native host!");
@@ -75,21 +75,21 @@ function nativeHandler(message: Native.NativeOperation){
     }
 }
 
-function ping(){
+function ping(): void{
     console.log("Pinging native host");
     nativePort.postMessage(new Native.NativeOperation(Native.NativeOperationType.ping));
 }
 
-function killNative(){
+function killNative(): void{
     console.log("Killing native host");
     nativePort.postMessage(new Native.NativeOperation(Native.NativeOperationType.exit));
 }
 
-function sendToAllPorts(obj: Content.Operation){
+function sendToAllPorts(obj: Content.Operation): void{
     ports.forEach(port => port.postMessage(obj));
 }
 
-function main(){
+function main(): void{
     console.log("Started osu!collections!");
 
     browser.runtime.onConnect.addListener(contentConnectHandler);

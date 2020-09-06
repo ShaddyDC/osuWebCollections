@@ -1,6 +1,6 @@
 import { browser } from "webextension-polyfill-ts";
 
-function saveOptions(e: Event) {
+function saveOptions(e: Event): void {
     let input = document.querySelector("#osu-folder") as HTMLInputElement;
 
     browser.storage.local.set({
@@ -10,7 +10,7 @@ function saveOptions(e: Event) {
     e.preventDefault();
 }
 
-function restoreOptions() {
+function restoreOptions(): void {
     let input = document.querySelector("#osu-folder") as HTMLInputElement;
 
     browser.storage.local.get('osuFolder')

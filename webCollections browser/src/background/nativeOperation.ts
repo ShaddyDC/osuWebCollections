@@ -32,7 +32,7 @@ export class NativeOsuFolderOperation extends NativeOperation{
 }
 
 export class NativeCollectionsOperation extends NativeOperation{
-    getCollections(){
+    getCollections(): [string]{
         return JSON.parse(this.collections);
     }
     collections!: string;

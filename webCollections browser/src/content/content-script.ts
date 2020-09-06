@@ -5,7 +5,7 @@ import { DomStuffs } from "./dom-stuffs";
 var port: Runtime.Port;
 var dom: DomStuffs = new DomStuffs();
 
-function backgroundHandler(message: Operation) {
+function backgroundHandler(message: Operation): void {
     console.log("Received", message);
 
     switch (message.operation) {
@@ -18,14 +18,14 @@ function backgroundHandler(message: Operation) {
     }
 }
 
-function connect() {
+function connect(): void {
     console.log("Attempting to connect to background...");
 
     port = browser.runtime.connect();
     port.onMessage.addListener(backgroundHandler);
 }
 
-function main() {
+function main(): void {
     console.log("Injected osu!collections!");
 
     dom.setUp();
