@@ -1,7 +1,7 @@
 
 export class DomStuffs{
     setUp(): void{
-        if(document.getElementById("collections-container") == null)
+        if(document.getElementById("collections-container") == null || true)
             this.createCollectionsContainer();
         else this.reset();
 
@@ -44,10 +44,17 @@ export class DomStuffs{
         let collectionsList = document.getElementById("collections-list");
         if(!collectionsList) return;
 
+
+        let thisInstance = this;
+
         function createNode(collection: string): Array<HTMLElement>{
             let node = document.createElement("a");
             node.innerText = collection;
-            node.onclick = ()=>console.log("Clicked", collection);
+            node.onclick = () => {
+                if(thisInstance.removeCollectionCallback){
+                    thisInstance.removeCollectionCallback(collection);
+                }
+            };
             return [ node, document.createElement("br") ];
         }
 
@@ -65,9 +72,13 @@ export class DomStuffs{
         if(mapsetInfo.childElementCount < 2) return;
 
         // container
-        let container = document.createElement("div");
-        container.className = "beatmapset-info__box beatmapset-info__box--meta";
-        container.id = "collections-container";
+        let container = document.getElementById("collections-container");
+        if(container) container.innerHTML = "";
+        else{            
+            container = document.createElement("div");
+            container.className = "beatmapset-info__box beatmapset-info__box--meta";
+            container.id = "collections-container";
+        }
         
         mapsetInfo.insertBefore(container, mapsetInfo.children[1]);
 
@@ -83,15 +94,27 @@ export class DomStuffs{
         // prepare input
         let collectionsInput = document.createElement("input");
         collectionsInput.className = "quick-search-input__input js-click-menu--autofocus";
+        collectionsInput.id = "collections-input";
+        collectionsInput.placeholder = "<collection>";
+        collectionsInput.autocomplete = "on";
+        section.appendChild(collectionsInput);
 
         let inputList = document.createElement("datalist");
         inputList.id = "collections-input-list";
         collectionsInput.appendChild(inputList);
         collectionsInput.setAttribute("list", "collections-input-list");
 
-        collectionsInput.id = "collections-input";
-        // collectionsInput.onkeydown = inputKeyDown;
         section.appendChild(collectionsInput);
+        
+        let inputButton = document.createElement("button");
+        inputButton.textContent = "test";
+        inputButton.onclick = () => {
+            console.log(this.addCollectionCallback);
+            if(this.addCollectionCallback){
+                this.addCollectionCallback(collectionsInput.value);
+            }
+        }
+        section.appendChild(inputButton);
 
         // actual list
         let collectionsList = document.createElement("div");
@@ -119,4 +142,6 @@ export class DomStuffs{
 
     private beatmapObserver!: MutationObserver;
     private beatmapChangeCallbacks: Array<()=>void> = [];
+    addCollectionCallback: ((collection: string)=>void) | undefined;
+    removeCollectionCallback: ((collection: string)=>void) | undefined;
 }

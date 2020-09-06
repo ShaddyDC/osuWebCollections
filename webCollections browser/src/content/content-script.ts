@@ -46,6 +46,16 @@ function handleMapCollections(message: Background.MapCheckResultsOperation): voi
     }
 }
 
+function addCollection(collection: string): void{
+    // TODO
+    console.log("Adding to collection", collection);
+}
+
+function removeCollection(collection: string): void{
+    // TODO
+    console.log("Removing from collection", collection);
+}
+
 function currentMapString(): string{
     let mapLink = document.getElementsByClassName("beatmapset-beatmap-picker__beatmap--active")[0] as HTMLLinkElement;
     return mapLink.getAttribute("href") ?? "";
@@ -77,6 +87,8 @@ function connect(): void {
 function main(): void {
     console.log("Injected osu!collections!");
 
+    dom.removeCollectionCallback = removeCollection;
+    dom.addCollectionCallback = addCollection;
     dom.setUp();
     connect();
     dom.registerBeatmapChangeListener(loadCurrentMap);
