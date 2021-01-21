@@ -1,0 +1,4 @@
+
+dist/**/*.js
+dist/**/*.js.map
+.parcel-cache
