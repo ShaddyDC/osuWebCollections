@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "description": "Edit local osu collections on beatmap page",
   "scripts": {
-    "build": "parcel build src/background/background.ts src/content/content-script.ts src/options/options.ts src/popup/popup.ts --public-url ./",
-    "watch": "parcel watch src/background/background.ts src/content/content-script.ts src/options/options.ts src/popup/popup.ts --public-url ./ & web-ext run"
+    "build": "parcel build src/background/background.ts src/content/content-script.ts src/options/options.ts src/popup/popup.ts src/collections_page/collections_page.ts --public-url ./",
+    "watch": "parcel watch src/background/background.ts src/content/content-script.ts src/options/options.ts src/popup/popup.ts src/collections_page/collections_page.ts --public-url ./ & web-ext run"
   },
   "author": "Shaddy",
   "license": "MIT",
