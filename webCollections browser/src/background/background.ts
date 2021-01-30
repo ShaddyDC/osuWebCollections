@@ -7,6 +7,7 @@ var nativePort: Runtime.Port;
 var osuFolder: string | null = null;
 var collections: [string];
 var hostReady: boolean = false;
+var partialPackets = new Map<number, string>();
 
 function loadSettings(): void{
     setReadyStatus(false);
@@ -50,6 +51,10 @@ function contentConnectHandler(port: Runtime.Port): void{
 
 function nativeHandler(message: Native.NativeOperation): void{
     switch (message.operation) {
+        case Native.NativeOperationType.multiPacket:
+            unpackMessage(message as Native.NativeMultiPacket);
+            break;
+
         case Native.NativeOperationType.pong:
             console.log("Pong from native host!");
             break;
@@ -77,6 +82,26 @@ function nativeHandler(message: Native.NativeOperation): void{
         default:
             console.warn("Unknown operation from native host!", message);
             break;
+    }
+}
+
+function unpackMessage(packet: Native.NativeMultiPacket): void
+{
+    console.log("Unpacking packet", packet);
+    
+    if(partialPackets.get(packet.id) == null) partialPackets.set(packet.id, "");
+
+    partialPackets.set(packet.id, partialPackets.get(packet.id) + packet.data);
+
+    if(packet.finished){
+        let data = partialPackets.get(packet.id);
+        partialPackets.delete(packet.id);
+        if(!data) {
+            console.warn("Received invalid object", packet);
+            return;   
+        }
+        let obj = JSON.parse(data) as Native.NativeCollectionsOperation;
+        nativeHandler(obj);
     }
 }
 

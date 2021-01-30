@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OsuParsers.Database;
 using OsuParsers.Decoders;
@@ -19,23 +19,13 @@ namespace webCollections
             SendStatus("Waiting for osu folder");
         }
 
-        enum OperationType
-        {
-            ping,
-            pong,
-            error,
-            status,
-            exit,
-            osuFolder,
-            collections,
-            mapCheck,
-        }
+        
         
         public static void SendStatus(string status)
         {
             var obj = new JObject
             {
-                ["operation"] = (int)OperationType.status,
+                ["operation"] = (int)ExtensionCommunicator.OperationType.status,
                 ["status"] = status
             };
             ExtensionCommunicator.Write(obj);
@@ -44,7 +34,7 @@ namespace webCollections
         void SendError(JObject obj, string error)
         {
             obj["obj"] = obj;
-            obj["operation"] = (int)OperationType.error;
+            obj["operation"] = (int)ExtensionCommunicator.OperationType.error;
             obj["error"] = error;
             ExtensionCommunicator.Write(obj);
         }
@@ -114,7 +104,7 @@ namespace webCollections
         {
             var obj = new JObject
             {
-                ["operation"] = (int)OperationType.collections,
+                ["operation"] = (int)ExtensionCommunicator.OperationType.collections,
                 ["collectionsJSON"] = JsonConvert.SerializeObject(osuManager.Collections())
             };
             ExtensionCommunicator.Write(obj);
@@ -132,23 +122,27 @@ namespace webCollections
             }
 
             try { 
-                switch ((OperationType)obj["operation"].ToObject<int>())
+                switch ((ExtensionCommunicator.OperationType)obj["operation"].ToObject<int>())
                 {
-                    case OperationType.ping:
-                        obj["operation"] = (int)OperationType.pong;
+                    case ExtensionCommunicator.OperationType.ping:
+                        obj["operation"] = (int)ExtensionCommunicator.OperationType.pong;
                         ExtensionCommunicator.Write(obj);
                         break;
-                    case OperationType.exit:
+                    case ExtensionCommunicator.OperationType.exit:
                         running = false;
                         SendStatus("Exiting...");
                         break;
                     
-                    case OperationType.osuFolder:
+                    case ExtensionCommunicator.OperationType.osuFolder:
                         HandleOsuFolder(obj);
                         break;
                     
-                    case OperationType.mapCheck:
+                    case ExtensionCommunicator.OperationType.mapCheck:
                         HandleMapCheck(obj);
+                        break;
+                    
+                    case ExtensionCommunicator.OperationType.collectionMaps:
+                        HandleCollectionMaps(obj);
                         break;
                     
                     default:
