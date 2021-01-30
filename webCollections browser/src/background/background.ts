@@ -79,6 +79,12 @@ function nativeHandler(message: Native.NativeOperation): void{
             handleMapCheckResults(message as Native.NativeMapCheckOperation);
             break;
     
+        case Native.NativeOperationType.collectionMaps:
+            const m = message as Native.NativeCollectionMapsOperation;
+            console.log(`Sending NativeOperationType for "${m.collection}" to ${m.origin}`);
+            ports[m.origin].postMessage(new Content.CollectionMapsOperation(m.collection, m.collectionSize, JSON.parse(m.mapsJSON)));
+            break;
+    
         default:
             console.warn("Unknown operation from native host!", message);
             break;
@@ -110,6 +116,19 @@ function contentHandler(message: Content.Operation, port: Runtime.Port): void{
         case Content.OperationType.mapCheck:
             handleMapCheck(message as Content.MapCheckOperation, port);
             break;
+    
+        case Content.OperationType.collectionMaps:
+            const origin = port.sender?.tab?.id;
+            if(!origin){
+                console.warn("collectionMaps from unknown port", port, message);
+                return;
+            }
+        
+            console.log(`collectionMaps from ${origin}`);
+            let collection = (message as Content.CollectionMapsRequestOperation).collection;
+            nativePort.postMessage(new Native.NativeCollectionMapsRequestOperation(collection, origin));
+            break;
+
     
         default:
             console.warn(`Unknown operation from port ${port.sender?.tab?.id}!`, message);

@@ -16,7 +16,8 @@ namespace webCollections
     {
         private OsuDatabase osuDb;
         private CollectionDatabase collectionDb;
-        private string osuFolder = null;
+        private Dictionary<string, DbBeatmap> hashBeatmaps = new Dictionary<string, DbBeatmap>();
+        private readonly string osuFolder = null;
         private string songsFolder => Path.Combine(osuFolder, "Songs");
         private string osuCollectionFile => Path.Combine(osuFolder, "collection.db");
         private string osuDbFile => Path.Combine(osuFolder, "osu!.db");
@@ -25,6 +26,11 @@ namespace webCollections
             this.osuFolder = osuFolder;
             osuDb = DatabaseDecoder.DecodeOsu(osuDbFile);
             collectionDb = DatabaseDecoder.DecodeCollection(osuCollectionFile);
+
+            foreach (var beatmap in osuDb.Beatmaps.Where(x => x.MD5Hash != null))
+            {
+                hashBeatmaps[beatmap.MD5Hash] = beatmap;
+            }
         }
 
         internal string MapHash(int mapId)
@@ -42,6 +48,30 @@ namespace webCollections
         internal List<string> Collections()
         {
             return collectionDb.Collections.Select(x => x.Name).ToList();
+        }
+
+        internal List<DbBeatmap> CollectionMaps(string name)
+        {
+            var collection = collectionDb.Collections.FirstOrDefault(x => x.Name == name);
+            return collection == null ? null : CollectionBeatmaps(collection);
+        }
+
+        private List<DbBeatmap> CollectionBeatmaps(Collection collection)
+        {
+            return collection.MD5Hashes.Select(hash => hashBeatmaps.GetValueOrDefault(hash)).Where(song => song != null).ToList();
+        }
+
+        internal IEnumerable<(string, int, List<DbBeatmap>)> CollectionsMaps(int maxSize = 100)
+        {
+            foreach (var collection in collectionDb.Collections)
+            {
+                List<DbBeatmap> beatmaps = new List<DbBeatmap>();
+
+                if (collection.MD5Hashes.Count <= maxSize)
+                    beatmaps = CollectionBeatmaps(collection);
+                
+                yield return(collection.Name, collection.MD5Hashes.Count, beatmaps);
+            }
         }
 
         internal void AddMapCollection(string hash, string collectionName)

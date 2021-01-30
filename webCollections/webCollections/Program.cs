@@ -86,6 +86,30 @@ namespace webCollections
             ExtensionCommunicator.Write(obj);
         }
 
+        private void HandleCollectionMaps(JObject obj)
+        {
+            var collectionsMaps = osuManager.CollectionsMaps();
+
+            if (obj["collection"] != null && obj["collection"].Type != JTokenType.Null)
+            {
+                var maps = osuManager.CollectionMaps(obj["collection"].ToString());
+                obj["collectionSize"] = maps?.Count;
+                obj["mapsJSON"] = JsonConvert.SerializeObject(maps);
+                ExtensionCommunicator.Write(obj);
+            }
+            else
+            {
+                foreach (var (collection, length, dbBeatmaps) in collectionsMaps)
+                {
+                    obj["collection"] = collection;
+                    obj["collectionSize"] = length;
+                    obj["mapsJSON"] = JsonConvert.SerializeObject(dbBeatmaps);
+                    ExtensionCommunicator.Write(obj);
+                }
+            }
+
+        }
+        
         void HandleOsuFolder(JObject obj)
         {
             if (obj["osuFolder"] == null)

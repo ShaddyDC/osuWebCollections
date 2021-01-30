@@ -5,6 +5,7 @@ export enum OperationType {
     collections,
     mapCheck,
     mapCheckResults,
+    collectionMaps,
 }
 
 export class Operation {
@@ -56,4 +57,26 @@ export class CollectionsOperation extends Operation{
     }
     
     collections!: [string];
+}
+
+export class CollectionMapsRequestOperation extends Operation{
+    constructor(collection: string | null)
+    {
+        super(OperationType.collectionMaps);
+        this.collection = collection;
+    }
+    collection: string | null;
+}
+
+export class CollectionMapsOperation extends Operation{
+    constructor(collection: string, collectionSize: number, maps: [Beatmap.Beatmap])
+    {
+        super(OperationType.collectionMaps);
+        this.collection = collection;
+        this.collectionSize = collectionSize;
+        this.maps = maps;
+    }
+    collection: string;
+    collectionSize: number;
+    maps: [Beatmap.Beatmap];
 }
