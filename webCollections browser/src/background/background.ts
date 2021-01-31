@@ -78,7 +78,7 @@ function nativeHandler(message: Native.NativeOperation): void{
         case Native.NativeOperationType.mapCheck:
             handleMapCheckResults(message as Native.NativeMapCheckOperation);
             break;
-    
+
         case Native.NativeOperationType.collectionMaps:
             const m = message as Native.NativeCollectionMapsOperation;
             console.log(`Sending NativeOperationType for "${m.collection}" to ${m.origin}`);
@@ -94,7 +94,7 @@ function nativeHandler(message: Native.NativeOperation): void{
 function unpackMessage(packet: Native.NativeMultiPacket): void
 {
     console.log("Unpacking packet", packet);
-    
+
     if(partialPackets.get(packet.id) == null) partialPackets.set(packet.id, "");
 
     partialPackets.set(packet.id, partialPackets.get(packet.id) + packet.data);
@@ -116,7 +116,7 @@ function contentHandler(message: Content.Operation, port: Runtime.Port): void{
         case Content.OperationType.mapCheck:
             handleMapCheck(message as Content.MapCheckOperation, port);
             break;
-    
+
         case Content.OperationType.collectionMaps:
             const origin = port.sender?.tab?.id;
             if(!origin){
@@ -184,7 +184,7 @@ function main(): void{
     console.log("Connected to native port!");
 
     // Ping host when icon is clicked
-    browser.browserAction.onClicked.addListener(killNative);
+    browser.browserAction.onClicked.addListener(()=>browser.tabs.create({url: "collections_page/collections_page.html"}));
 
     loadSettings();
     browser.storage.onChanged.addListener(loadSettings);
