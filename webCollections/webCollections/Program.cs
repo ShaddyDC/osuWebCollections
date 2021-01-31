@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OsuParsers.Database;
 using OsuParsers.Decoders;
@@ -19,7 +19,7 @@ namespace webCollections
             SendStatus("Waiting for osu folder");
         }
 
-        
+
         
         public static void SendStatus(string status)
         {
@@ -177,7 +177,6 @@ namespace webCollections
             catch (Exception e)
             {
                 SendError(obj, $"Exception: {e}");
-                ExtensionCommunicator.Write(obj);
             }
         }
 
