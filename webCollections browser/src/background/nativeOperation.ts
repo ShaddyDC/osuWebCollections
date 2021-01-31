@@ -1,5 +1,3 @@
-import { CollectionMapsOperation } from "../shared/backContComm";
-
 export enum NativeOperationType{
     multiPacket,
     ping,

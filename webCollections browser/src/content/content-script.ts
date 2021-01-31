@@ -1,48 +1,31 @@
-import { browser, Runtime } from "webextension-polyfill-ts";
-import * as Background from "../shared/backContComm";
+import * as Background from "../shared/backContOps";
 import { DomStuffs } from "./dom-stuffs";
+import { backgroundHandler } from "../shared/backContHandler";
 
-var port: Runtime.Port;
+var background = new backgroundHandler();
 var dom: DomStuffs = new DomStuffs();
 var hostReady = false;
 
-function backgroundHandler(message: Background.Operation): void {
-    switch (message.operation) {
-        case Background.OperationType.ready:
-            console.log("Tab is ready!");
-            break;
-
-        case Background.OperationType.hostReady:
-            hostReady = (message as Background.HostReadyOperation).ready;
-            console.log(`Native host is ready ${hostReady}`);
-            if(!hostReady) handleHostUnready();
-            else loadCurrentMap();
-            break;
-
-        case Background.OperationType.collections:
-            const collections = (message as Background.CollectionsOperation).collections;
-            console.log("Available collections", collections);
-            dom.setInputCollections(collections);
-            break;
-
-        case Background.OperationType.mapCheckResults:
-            handleMapCollections(message as Background.MapCheckResultsOperation);
-            break;
-    
-        default:
-            console.warn("Unknown operation from native host!", message);
-            break;
-    }
+function handleCollections(collections: [string]){
+    console.log("Available collections", collections);
+    dom.setInputCollections(collections);
 }
 
-function handleMapCollections(message: Background.MapCheckResultsOperation): void{
-    if(message.mapId != currentMapId()) {
-        console.log("Received mapCheckResults for different map (old?)", message);
+function handleHostReadiness(ready: boolean){
+    hostReady = ready;
+    console.log(`Native host is ready ${hostReady}`);
+    if(!hostReady) handleHostUnready();
+    else loadCurrentMap();
+}
+
+function handleMapCollections(mapId: string, available: boolean, collections: [string] | undefined): void{
+    if(mapId != currentMapId()) {
+        console.log("Received mapCheckResults for different map (old?)", mapId);
         return;
     }
-    console.log("Received mapCheckResults!", message);
-    if(message.available && message.mapCollections){
-        dom.setMapCollections(message.mapCollections);
+    console.log("Received mapCheckResults!", mapId);
+    if(available && collections){
+        dom.setMapCollections(collections);
     }
 }
 
@@ -70,7 +53,7 @@ function loadCurrentMap(): void{
 
     const mapId = currentMapId();
     console.log(`Loading map ${mapId}`);
-    port.postMessage(new Background.MapCheckOperation(mapId));
+    background.postOperation(new Background.MapCheckOperation(mapId));
 }
 
 function handleHostUnready(): void{
@@ -80,12 +63,16 @@ function handleHostUnready(): void{
 function connect(): void {
     console.log("Attempting to connect to background...");
 
-    port = browser.runtime.connect();
-    port.onMessage.addListener(backgroundHandler);
+    background.connect();
 }
 
 function main(): void {
     console.log("Injected osu!collections!");
+    
+    background.readyHandler = ()=>console.log("Tab is ready");
+    background.hostReadyHandler = handleHostReadiness;
+    background.collectionsHandler = handleCollections;
+    background.mapCheckResultsHandler = handleMapCollections;
 
     dom.removeCollectionCallback = removeCollection;
     dom.addCollectionCallback = addCollection;

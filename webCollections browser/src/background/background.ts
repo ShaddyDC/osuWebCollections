@@ -1,5 +1,5 @@
 import { browser, Runtime } from "webextension-polyfill-ts";
-import * as Content from "../shared/backContComm";
+import * as Content from "../shared/backContOps";
 import * as Native from "./nativeOperation";
 
 var ports : Array<Runtime.Port> = [];
