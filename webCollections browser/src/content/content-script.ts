@@ -1,21 +1,25 @@
 import * as Background from "../shared/backContOps";
 import { DomStuffs } from "./dom-stuffs";
 import { backgroundHandler } from "../shared/backContHandler";
+import { MapState } from "./map-state";
 
 var background = new backgroundHandler();
-var dom: DomStuffs = new DomStuffs();
-var hostReady = false;
+var mapState = new MapState();
+var dom: DomStuffs = new DomStuffs(mapState);
+
 
 function handleCollections(collections: [string]){
     console.log("Available collections", collections);
-    dom.setInputCollections(collections);
+    mapState.collections = collections;
+    dom.triggerUpdateNeeded();
 }
 
 function handleHostReadiness(ready: boolean){
-    hostReady = ready;
-    console.log(`Native host is ready ${hostReady}`);
-    if(!hostReady) handleHostUnready();
-    else loadCurrentMap();
+    mapState.hostReady = ready;
+    dom.triggerUpdateNeeded();
+    console.log(`Native host is ready ${mapState.hostReady}`);
+
+    if(mapState.hostReady) loadCurrentMap();
 }
 
 function handleMapCollections(mapId: string, available: boolean, collections: [string] | undefined): void{
@@ -24,9 +28,11 @@ function handleMapCollections(mapId: string, available: boolean, collections: [s
         return;
     }
     console.log("Received mapCheckResults!", mapId, available, collections);
-    if(available && collections){
-        dom.setMapCollections(collections);
-    }
+
+    mapState.mapLoaded = true;
+    mapState.mapAvailable = available;
+    mapState.mapCollections = collections;
+    dom.triggerUpdateNeeded();
 }
 
 function addCollection(collection: string): void{
@@ -49,15 +55,13 @@ function currentMapId(): string{
 }
 
 function loadCurrentMap(): void{
-    if(!hostReady) return;
+    if(!mapState.hostReady) return;
+    mapState.mapLoaded = false;
+    dom.triggerUpdateNeeded();
 
     const mapId = currentMapId();
     console.log(`Loading map ${mapId}`);
     background.postOperation(new Background.MapCheckOperation(mapId));
-}
-
-function handleHostUnready(): void{
-    dom.reset();
 }
 
 function connect(): void {
