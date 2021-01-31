@@ -1,9 +1,11 @@
 
 export class DomStuffs{
-    setUp(): void{
-        if(document.getElementById("collections-container") == null || true)
-            this.createCollectionsContainer();
-        else this.reset();
+    public start(): void{
+        setInterval(()=> this.updateInBeatmap(), 1000);
+    }
+
+    private setUp(): void{
+        this.createCollectionsContainer();
 
         if(this.beatmapObserver) this.beatmapObserver.disconnect();
 
@@ -15,6 +17,15 @@ export class DomStuffs{
         else{
             console.warn("Couldn't place mutation observer to see beatmap changes!");
         }
+    }
+    
+    private isLoaded(): boolean{
+        return document.getElementById("collections-container") != null;
+    }
+
+    private updateInBeatmap(): void{
+        let inBeatmap = document.getElementsByClassName("beatmaps_show").length > 0;
+        if(inBeatmap && !this.isLoaded()) this.setUp();
     }
 
     clearInputCollections(): void{
@@ -78,48 +89,37 @@ export class DomStuffs{
             container = document.createElement("div");
             container.className = "beatmapset-info__box beatmapset-info__box--meta";
             container.id = "collections-container";
-        }
-        
-        mapsetInfo.insertBefore(container, mapsetInfo.children[1]);
+            mapsetInfo.insertBefore(container, mapsetInfo.children[1]);
+        }        
 
         // section + heading
-        let section = document.createElement("div");
-        container.appendChild(section);
-        let heading = document.createElement("h3");
-        heading.id = "collections-id";
+        let section = container.appendChild(document.createElement("div"));
+        let heading = section.appendChild(document.createElement("h3"));
         heading.className = "beatmapset-info__header";
         heading.innerText = "Collections";
-        section.appendChild(heading);
 
         // prepare input
-        let collectionsInput = document.createElement("input");
+        let collectionsInput = section.appendChild(document.createElement("input"));
         collectionsInput.className = "quick-search-input__input js-click-menu--autofocus";
         collectionsInput.id = "collections-input";
         collectionsInput.placeholder = "<collection>";
         collectionsInput.autocomplete = "on";
-        section.appendChild(collectionsInput);
 
-        let inputList = document.createElement("datalist");
+        let inputList = collectionsInput.appendChild(document.createElement("datalist"));
         inputList.id = "collections-input-list";
-        collectionsInput.appendChild(inputList);
         collectionsInput.setAttribute("list", "collections-input-list");
-
-        section.appendChild(collectionsInput);
         
-        let inputButton = document.createElement("button");
+        let inputButton = section.appendChild(document.createElement("button"));
         inputButton.textContent = "test";
         inputButton.onclick = () => {
-            console.log(this.addCollectionCallback);
             if(this.addCollectionCallback){
                 this.addCollectionCallback(collectionsInput.value);
             }
         }
-        section.appendChild(inputButton);
 
         // actual list
-        let collectionsList = document.createElement("div");
-        collectionsList.id = "collections-list";
-        section.appendChild(collectionsList);    
+        let collectionsList = section.appendChild(document.createElement("div"));
+        collectionsList.id = "collections-list"; 
     }
 
     reset(): void{

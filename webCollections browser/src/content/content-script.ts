@@ -23,7 +23,7 @@ function handleMapCollections(mapId: string, available: boolean, collections: [s
         console.log("Received mapCheckResults for different map (old?)", mapId);
         return;
     }
-    console.log("Received mapCheckResults!", mapId);
+    console.log("Received mapCheckResults!", mapId, available, collections);
     if(available && collections){
         dom.setMapCollections(collections);
     }
@@ -76,9 +76,9 @@ function main(): void {
 
     dom.removeCollectionCallback = removeCollection;
     dom.addCollectionCallback = addCollection;
-    dom.setUp();
-    connect();
+    dom.start();
     dom.registerBeatmapChangeListener(loadCurrentMap);
+    connect();
 }
 
 main();
