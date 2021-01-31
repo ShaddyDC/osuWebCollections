@@ -113,19 +113,19 @@ export class DomStuffs{
         heading.innerText = "Collections";
 
         if(!this.mapState.hostReady){
-            let stateText = section.appendChild(document.createElement("div"));
+            let stateText = section.appendChild(document.createElement("p"));
             stateText.textContent = "Waiting for host...";
             return;
         }
 
         if(!this.mapState.mapLoaded){
-            let stateText = section.appendChild(document.createElement("div"));
+            let stateText = section.appendChild(document.createElement("p"));
             stateText.textContent = "Loading song...";
             return;
         }
 
         if(!this.mapState.mapAvailable){
-            let stateText = section.appendChild(document.createElement("div"));
+            let stateText = section.appendChild(document.createElement("p"));
             stateText.textContent = "Song not in downloaded";
             return;
         }
