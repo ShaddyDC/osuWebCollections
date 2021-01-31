@@ -18,42 +18,76 @@ function updateCollections(collections: [string]): void {
     let list = document.getElementById("collections-list")!;
     list.innerHTML = "";
     collections.forEach(collection =>{
-
-
         let element = list.appendChild(document.createElement("li"));
-        element.textContent = collection;
         element.id = `li-${collection}`;
 
-        element.appendChild(document.createElement("div")).textContent = " - ";
+        let section = element.appendChild(document.createElement("div"));
 
-        element.appendChild(document.createElement("div")).id = `li-${collection}-size`;
+        let collectionName = section.appendChild(document.createElement("p"));
+        collectionName.textContent = collection;
+        collectionName.style.display = "inline";
 
-        let button = element.appendChild(document.createElement("button"));
+        let collectionSize = section.appendChild(document.createElement("p"));
+        collectionSize.id = `li-${collection}-size`;
+        collectionSize.style.display = "inline";
+        collectionSize.style.margin = "3ch";
+
+        let button = section.appendChild(document.createElement("button"));
         button.textContent = "request collection";
         button.addEventListener("click", buildRequestCollection(collection));
+        button.style.display = "inline";
 
-        element.appendChild(document.createElement("ol")).id = `li-${collection}-list`;
+        let mapList = section.appendChild(document.createElement("ol"));
+        mapList.id = `li-${collection}-list`;
+        mapList.classList.add("collapsed");
+
+        collectionName.addEventListener("click", ()=>{
+            mapList.classList.toggle("collapsed");
+        });
     });
+}
+
+function modeToString(m: number): string | null{
+    switch (m) {
+        case 0: return "osu";
+        case 1: return "taiko";
+        case 2: return "fruits";
+        case 3: return "mania";    
+        default: return null;;
+    }
 }
 
 function collectionMaps(collection: string, size: number, maps: [Beatmap.Beatmap]): void{
     console.log(`Got collection "${collection}" with "${maps}"`);
 
     let sizeNode = document.getElementById(`li-${collection}-size`) as HTMLDivElement;
-    sizeNode.textContent = size.toString();
+    sizeNode.textContent = `(${size})`;
 
     let list = document.getElementById(`li-${collection}-list`) as HTMLOListElement;
     list.innerHTML = "";
-    let l = list.appendChild(document.createElement("ol"));
-    l.classList.add("collapsed");
     maps.forEach(m =>{
-        let x = l.appendChild(document.createElement("li"));
-        x.textContent = m.Title;
-    });
+        let listElement = list.appendChild(document.createElement("li"));
+        let listLink = listElement.appendChild(document.createElement("a"));
+        listLink.textContent = `${m.Artist} - ${m.Title} [${m.Difficulty}]`;
+        listLink.href = `https://osu.ppy.sh/beatmapsets/${m.BeatmapSetId}#${modeToString(m.Ruleset)}/${m.BeatmapId}`;
 
-    let node = document.getElementById(`li-${collection}`) as HTMLLIElement;
-    node.addEventListener("click", ()=>{
-        l.classList.toggle("collapsed");
+        let uid = `${collection}/${m.BeatmapSetId}/${m.BeatmapId}`;
+        listLink.addEventListener("mouseover", ()=>{
+            let preview = document.getElementById(uid) as HTMLIFrameElement;
+            if(!preview) {
+                preview = listLink.appendChild(document.createElement("iframe"));
+                preview.id = uid;
+                preview.classList.add("cover-preview");
+                preview.src = `https://assets.ppy.sh/beatmaps/${m.BeatmapSetId}/covers/cover.jpg`; 
+            }
+            preview.style.display = "inherit";
+        });
+
+        listLink.addEventListener("mouseout", ()=>{
+            let preview = document.getElementById(uid) as HTMLIFrameElement;
+            if(!preview) return;
+            preview.style.display = "none";
+        });
     });
 }
 
