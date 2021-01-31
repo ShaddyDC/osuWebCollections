@@ -45,23 +45,32 @@ function removeCollection(collection: string): void{
     console.log("Removing from collection", collection);
 }
 
-function currentMapString(): string{
+function currentMapString(): string | null {
     let mapLink = document.getElementsByClassName("beatmapset-beatmap-picker__beatmap--active")[0] as HTMLLinkElement;
-    return mapLink.getAttribute("href") ?? "";
+    return mapLink?.getAttribute("href") ?? "";
 }
 
-function currentMapId(): string{
-    return currentMapString().split("/")[1];
+function currentMapId(): string | null{
+    let tokens = currentMapString()?.split("/")
+    if(!tokens || tokens.length < 2) return null;
+    return tokens[1];
 }
 
 function loadCurrentMap(): void{
     if(!mapState.hostReady) return;
+    console.log("In fact loading current song");
     mapState.mapLoaded = false;
     dom.triggerUpdateNeeded();
 
+    console.log("still at it");
     const mapId = currentMapId();
-    console.log(`Loading map ${mapId}`);
-    background.postOperation(new Background.MapCheckOperation(mapId));
+    if(mapId){
+        console.log(`Loading map ${mapId}`);
+        background.postOperation(new Background.MapCheckOperation(mapId));
+    } else {
+        console.log("Couldn't get current map. Trying again soon.");
+        setTimeout(loadCurrentMap, 100);
+    }
 }
 
 function connect(): void {
