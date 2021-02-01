@@ -91,6 +91,7 @@ function main(): void {
     dom.addCollectionCallback = addCollection;
     dom.start();
     dom.registerBeatmapChangeListener(loadCurrentMap);
+    dom.collectionsPageCallback = ()=>background.postOperation(new Background.Operation(Background.OperationType.collectionsPageOpen));
     connect();
 }
 

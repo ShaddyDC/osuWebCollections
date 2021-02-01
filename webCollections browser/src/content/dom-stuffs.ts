@@ -38,6 +38,8 @@ export class DomStuffs{
     private updateInBeatmap(): void{
         let inBeatmap = document.getElementsByClassName("beatmaps_show").length > 0;
         if(inBeatmap && (this.stateChanged || !this.isLoaded())) this.setUp();
+        
+        this.insertColNav();
     }
 
     private clearInputCollections(): void{
@@ -172,6 +174,43 @@ export class DomStuffs{
         );
     }
 
+    private insertColNav(): void{
+        if(document.getElementById("collections-container")) return;
+
+        let navbarCol = document.getElementsByClassName("nav2");
+        if(navbarCol.length != 1){
+            navbarCol = document.getElementsByClassName("landing-nav");
+
+            if(navbarCol.length != 1){
+                console.log("Couldn't get navbar");
+                return;
+            }
+        }
+        
+        let navbar = navbarCol[0];
+        if(navbar && navbar.childElementCount > 0) navbar = navbar.children[0];
+
+        if(navbar.childElementCount < 3){
+            console.log("Not enough navbar children");
+            return;
+        }
+
+        let beatmaps = navbar.children[2];
+
+        let collectionsContainer = beatmaps.insertAdjacentElement('afterend', document.createElement("div"));
+        if(!collectionsContainer) return;
+
+        collectionsContainer.id = "collections-container";
+        collectionsContainer.className = "nav2__col nav2__col--menu";
+
+        let collectionsLink = collectionsContainer.appendChild(document.createElement("a"));
+        collectionsLink.text = "Collections";
+        collectionsLink.className = "nav2__menu-link-main js-menu";
+        collectionsLink.addEventListener("click", ()=>{
+            if(this.collectionsPageCallback) this.collectionsPageCallback();
+        });
+    }
+
     public triggerUpdateNeeded(){
         this.stateChanged = true;
     }
@@ -187,4 +226,5 @@ export class DomStuffs{
 
     addCollectionCallback: ((collection: string)=>void) | undefined;
     removeCollectionCallback: ((collection: string)=>void) | undefined;
+    collectionsPageCallback: (()=>void) | undefined;
 }

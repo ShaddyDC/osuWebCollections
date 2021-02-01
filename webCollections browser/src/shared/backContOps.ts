@@ -2,6 +2,7 @@
 export enum OperationType {
     ready,
     hostReady,
+    collectionsPageOpen,
     collections,
     mapCheck,
     mapCheckResults,

@@ -129,6 +129,10 @@ function contentHandler(message: Content.Operation, port: Runtime.Port): void{
             nativePort.postMessage(new Native.NativeCollectionMapsRequestOperation(collection, origin));
             break;
 
+        case Content.OperationType.collectionsPageOpen:
+            browser.tabs.create({url: "collections_page/collections_page.html"});
+            break;
+
     
         default:
             console.warn(`Unknown operation from port ${port.sender?.tab?.id}!`, message);
