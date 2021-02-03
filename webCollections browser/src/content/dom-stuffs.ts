@@ -175,7 +175,7 @@ export class DomStuffs{
     }
 
     private insertColNav(): void{
-        if(document.getElementById("collections-container")) return;
+        if(document.getElementById("nav-collections-container")) return;
 
         let navbarCol = document.getElementsByClassName("nav2");
         if(navbarCol.length != 1){
@@ -200,7 +200,7 @@ export class DomStuffs{
         let collectionsContainer = beatmaps.insertAdjacentElement('afterend', document.createElement("div"));
         if(!collectionsContainer) return;
 
-        collectionsContainer.id = "collections-container";
+        collectionsContainer.id = "nav-collections-container";
         collectionsContainer.className = "nav2__col nav2__col--menu";
 
         let collectionsLink = collectionsContainer.appendChild(document.createElement("a"));
