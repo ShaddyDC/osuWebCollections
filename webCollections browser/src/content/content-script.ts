@@ -115,7 +115,7 @@ function main(): void {
     background.hostReadyHandler = handleHostReadiness;
     background.collectionsHandler = handleCollections;
     background.mapCheckResultsHandler = handleMapCollections;
-    background.collectionMapAddHandler = collectionAddMapEvent; // TODO: Add these to collections page
+    background.collectionMapAddHandler = collectionAddMapEvent;
     background.collectionMapRemoveHandler = collectionRemoveMapEvent;
 
     dom.removeCollectionCallback = removeCollection;

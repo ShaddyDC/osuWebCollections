@@ -1,8 +1,6 @@
-import { browser, Runtime } from "webextension-polyfill-ts";
 import * as Background from "../shared/backContOps";
 import { backgroundHandler } from "../shared/backContHandler";
 
-var port: Runtime.Port;
 var background = new backgroundHandler();
 
 function buildRequestCollection(collection: string){
@@ -61,7 +59,7 @@ function collectionMaps(collection: string, size: number, maps: [Beatmap.Beatmap
     console.log(`Got collection "${collection}" with "${maps}"`);
 
     let sizeNode = document.getElementById(`li-${collection}-size`) as HTMLDivElement;
-    sizeNode.textContent = `(${size})`;
+    sizeNode.textContent = `${size}`;
 
     let list = document.getElementById(`li-${collection}-list`) as HTMLOListElement;
     list.innerHTML = "";
@@ -71,7 +69,7 @@ function collectionMaps(collection: string, size: number, maps: [Beatmap.Beatmap
         listLink.textContent = `${m.Artist} - ${m.Title} [${m.Difficulty}]`;
         listLink.href = `https://osu.ppy.sh/beatmapsets/${m.BeatmapSetId}#${modeToString(m.Ruleset)}/${m.BeatmapId}`;
 
-        let uid = `${collection}/${m.BeatmapSetId}/${m.BeatmapId}`;
+        let uid = `${collection}/${m.BeatmapSetId}/${m.BeatmapId}-preview`;
         listLink.addEventListener("mouseover", ()=>{
             let preview = document.getElementById(uid) as HTMLIFrameElement;
             if(!preview) {
@@ -91,6 +89,36 @@ function collectionMaps(collection: string, size: number, maps: [Beatmap.Beatmap
     });
 }
 
+function collectionAddMapEvent(collection: string, mapId: string): void{
+    console.log(`Added ${mapId} to collection ${collection}`);
+
+    // Get size
+    let sizeNode = document.getElementById(`li-${collection}-size`) as HTMLDivElement;
+    let size = Number(sizeNode.textContent);
+
+    // Unfortunately we don't have all information to populate the list entry
+    // If collection is sufficiently small, we just reload it
+    // TODO: Flag as outdated otherwise
+    if(size <= 100){
+        background.postOperation(new Background.CollectionMapsRequestOperation(collection));
+    }
+}
+
+function collectionRemoveMapEvent(collection: string, mapId: string): void{
+    console.log(`Removed ${mapId} from collection ${collection}`);
+
+    // Get size
+    let sizeNode = document.getElementById(`li-${collection}-size`) as HTMLDivElement;
+    let size = Number(sizeNode.textContent);
+
+    // We theoretically have the information to update this, but I don't want to have it asymmetric
+    // If collection is sufficiently small, we just reload it
+    // TODO: Flag as outdated otherwise
+    if(size <= 100){
+        background.postOperation(new Background.CollectionMapsRequestOperation(collection));
+    }
+}
+
 function connect(): void {
     console.log("Attempting to connect to background...");
 
@@ -105,5 +133,7 @@ background.readyHandler = ()=>{
 background.hostReadyHandler = (ready)=>console.log(`Native host is ready: ${ready}`);
 background.collectionsHandler = updateCollections;
 background.collectionsMapsHandler = collectionMaps;
+background.collectionMapAddHandler = collectionAddMapEvent;
+background.collectionMapRemoveHandler = collectionRemoveMapEvent;
 
 connect();
