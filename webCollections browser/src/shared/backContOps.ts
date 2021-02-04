@@ -7,6 +7,8 @@ export enum OperationType {
     mapCheck,
     mapCheckResults,
     collectionMaps,
+    collectionMapAdd,
+    collectionMapRemove,
 }
 
 export class Operation {
@@ -80,4 +82,26 @@ export class CollectionMapsOperation extends Operation{
     collection: string;
     collectionSize: number;
     maps: [Beatmap.Beatmap];
+}
+
+export class CollectionMapAddOperation extends Operation{
+    constructor(collection: string, mapId: string)
+    {
+        super(OperationType.collectionMapAdd);
+        this.collection = collection;
+        this.mapId = mapId;
+    }
+    collection: string;
+    mapId: string;
+}
+
+export class CollectionMapRemoveOperation extends Operation{
+    constructor(collection: string, mapId: string)
+    {
+        super(OperationType.collectionMapRemove);
+        this.collection = collection;
+        this.mapId = mapId;
+    }
+    collection: string;
+    mapId: string;
 }

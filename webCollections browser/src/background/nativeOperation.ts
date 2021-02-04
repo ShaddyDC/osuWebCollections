@@ -1,4 +1,4 @@
-export enum NativeOperationType{
+export enum OperationType{
     multiPacket,
     ping,
     pong,
@@ -9,52 +9,54 @@ export enum NativeOperationType{
     collections,
     mapCheck,
     collectionMaps,
+    collectionMapAdd,
+    collectionMapRemove,
 }
 
-export class NativeOperation{
-    constructor(operation: NativeOperationType)
+export class Operation{
+    constructor(operation: OperationType)
     {
         this.operation = operation;
     }
 
-    operation!: NativeOperationType;
+    operation!: OperationType;
 }
 
-export class NativeMultiPacket extends NativeOperation{
+export class MultiPacket extends Operation{
     id!: number;
     data!: string;
     finished!: boolean;
 }
 
-export class NativeProxyOperation extends NativeOperation{
-    constructor(operation: NativeOperationType, origin: number){
+export class ProxyOperation extends Operation{
+    constructor(operation: OperationType, origin: number){
         super(operation);
         this.origin = origin;
     }
     origin: number;
 }
 
-export class NativeStatusOperation extends NativeOperation{
+export class StatusOperation extends Operation{
     status!: string;
 }
 
-export class NativeOsuFolderOperation extends NativeOperation{
+export class OsuFolderOperation extends Operation{
     constructor(osuFolder: string)
     {
-        super(NativeOperationType.osuFolder);
+        super(OperationType.osuFolder);
         this.osuFolder = osuFolder;
     }
     osuFolder: string;
 }
 
-export class NativeCollectionsOperation extends NativeOperation{
+export class CollectionsOperation extends Operation{
     collectionsJSON!: string;
 }
 
-export class NativeMapCheckOperation extends NativeOperation{
+export class MapCheckOperation extends Operation{
     constructor(mapId: string, origin: number)
     {
-        super(NativeOperationType.mapCheck);
+        super(OperationType.mapCheck);
         this.mapId = mapId;
         this.origin = origin;
     }
@@ -65,19 +67,41 @@ export class NativeMapCheckOperation extends NativeOperation{
     mapCollectionsJSON: string | undefined;
 }
 
-export class NativeCollectionMapsRequestOperation extends NativeProxyOperation{
+export class CollectionMapsRequestOperation extends ProxyOperation{
     constructor(collection: string | null, origin: number)
     {
-        super(NativeOperationType.collectionMaps, origin);
+        super(OperationType.collectionMaps, origin);
         this.collection = collection;
     }
     collection: string | null;
 }
 
 
-export class NativeCollectionMapsOperation extends NativeOperation{
+export class CollectionMapsOperation extends Operation{
     origin!: number;
     collection!: string;
     collectionSize!: number;
     mapsJSON!: string;
+}
+
+export class CollectionMapAddOperation extends Operation{
+    constructor(collection: string, mapId: string)
+    {
+        super(OperationType.collectionMapAdd);
+        this.collection = collection;
+        this.mapId = Number(mapId) || -1;
+    }
+    collection: string;
+    mapId: number;
+}
+
+export class CollectionMapRemoveOperation extends Operation{
+    constructor(collection: string, mapId: string)
+    {
+        super(OperationType.collectionMapRemove);
+        this.collection = collection;
+        this.mapId = Number(mapId) || -1;
+    }
+    collection: string;
+    mapId: number;
 }

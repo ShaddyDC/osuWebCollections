@@ -36,13 +36,45 @@ function handleMapCollections(mapId: string, available: boolean, collections: [s
 }
 
 function addCollection(collection: string): void{
-    // TODO
-    console.log("Adding to collection", collection);
+    const mapId = currentMapId();
+    console.log("Adding to collection", mapId, collection);
+    if(!mapId) return;
+    background.postOperation(new Background.CollectionMapAddOperation(collection, mapId));
 }
 
 function removeCollection(collection: string): void{
-    // TODO
-    console.log("Removing from collection", collection);
+    const mapId = currentMapId();
+    console.log("Removing from collection", mapId, collection);
+    if(!mapId) return;
+    background.postOperation(new Background.CollectionMapRemoveOperation(collection, mapId));
+}
+
+function collectionAddMapEvent(collection: string, mapId: string): void{
+    if(currentMapId() != mapId) return;
+
+    if(mapState.mapCollections?.indexOf(collection)) {
+        console.log(`Couldn't add ${mapId} to collection ${collection} as it was already in collection`);
+        return
+    };
+
+    mapState.mapCollections?.push(collection);
+    dom.triggerUpdateNeeded();
+
+    console.log(`Added ${mapId} to collection ${collection}`);
+}
+
+function collectionRemoveMapEvent(collection: string, mapId: string): void{
+    if(currentMapId() != mapId) return;
+
+    let index = mapState.mapCollections?.indexOf(collection);
+    if(!index) {
+        console.log(`Couldn't remove ${mapId} from collection ${collection} as collection wasn't found`);
+        return
+    };
+    mapState.mapCollections?.splice(index, 1);
+    dom.triggerUpdateNeeded();
+
+    console.log(`Removed ${mapId} from collection ${collection}`);
 }
 
 function currentMapString(): string | undefined {
@@ -83,6 +115,8 @@ function main(): void {
     background.hostReadyHandler = handleHostReadiness;
     background.collectionsHandler = handleCollections;
     background.mapCheckResultsHandler = handleMapCollections;
+    background.collectionMapAddHandler = collectionAddMapEvent; // TODO: Add these to collections page
+    background.collectionMapRemoveHandler = collectionRemoveMapEvent;
 
     dom.removeCollectionCallback = removeCollection;
     dom.addCollectionCallback = addCollection;

@@ -16,7 +16,7 @@ function loadSettings(): void{
         console.log(`osuFolder set to ${osuFolder}`);
         
         if(osuFolder != null && osuFolder != ""){
-            nativePort.postMessage(new Native.NativeOsuFolderOperation(osuFolder));
+            nativePort.postMessage(new Native.OsuFolderOperation(osuFolder));
         }        
     }
 
@@ -49,49 +49,59 @@ function contentConnectHandler(port: Runtime.Port): void{
     }
 }
 
-function nativeHandler(message: Native.NativeOperation): void{
+function nativeHandler(message: Native.Operation): void{
     switch (message.operation) {
-        case Native.NativeOperationType.multiPacket:
-            unpackMessage(message as Native.NativeMultiPacket);
+        case Native.OperationType.multiPacket:
+            unpackMessage(message as Native.MultiPacket);
             break;
 
-        case Native.NativeOperationType.pong:
+        case Native.OperationType.pong:
             console.log("Pong from native host!");
             break;
 
-        case Native.NativeOperationType.error:
+        case Native.OperationType.error:
             console.warn("Error on host", message);
             break;
 
-        case Native.NativeOperationType.status:
-            let status = message as Native.NativeStatusOperation;
+        case Native.OperationType.status:
+            let status = message as Native.StatusOperation;
             console.log(`Native status: ${status.status}`);
             break;
 
-        case Native.NativeOperationType.collections:
-            collections = JSON.parse((message as Native.NativeCollectionsOperation).collectionsJSON);
+        case Native.OperationType.collections:
+            collections = JSON.parse((message as Native.CollectionsOperation).collectionsJSON);
             console.log("Updating collections", collections);
             setReadyStatus(true);
             shareCollections();
             break;
 
-        case Native.NativeOperationType.mapCheck:
-            handleMapCheckResults(message as Native.NativeMapCheckOperation);
+        case Native.OperationType.mapCheck:
+            handleMapCheckResults(message as Native.MapCheckOperation);
             break;
 
-        case Native.NativeOperationType.collectionMaps:
-            const m = message as Native.NativeCollectionMapsOperation;
+        case Native.OperationType.collectionMaps:
+            const m = message as Native.CollectionMapsOperation;
             console.log(`Sending NativeOperationType for "${m.collection}" to ${m.origin}`);
             ports[m.origin].postMessage(new Content.CollectionMapsOperation(m.collection, m.collectionSize, JSON.parse(m.mapsJSON)));
             break;
-    
+
+        case Native.OperationType.collectionMapAdd:
+            const addM = message as Native.CollectionMapAddOperation;
+            sendToAllPorts(new Content.CollectionMapAddOperation(addM.collection, addM.mapId.toString()));
+            break;
+
+        case Native.OperationType.collectionMapRemove:
+            const remM = message as Native.CollectionMapRemoveOperation;
+            sendToAllPorts(new Content.CollectionMapRemoveOperation(remM.collection, remM.mapId.toString()));
+            break;
+
         default:
             console.warn("Unknown operation from native host!", message);
             break;
     }
 }
 
-function unpackMessage(packet: Native.NativeMultiPacket): void
+function unpackMessage(packet: Native.MultiPacket): void
 {
     console.log("Unpacking packet", packet);
 
@@ -106,7 +116,7 @@ function unpackMessage(packet: Native.NativeMultiPacket): void
             console.warn("Received invalid object", packet);
             return;   
         }
-        let obj = JSON.parse(data) as Native.NativeCollectionsOperation;
+        let obj = JSON.parse(data) as Native.CollectionsOperation;
         nativeHandler(obj);
     }
 }
@@ -126,13 +136,22 @@ function contentHandler(message: Content.Operation, port: Runtime.Port): void{
         
             console.log(`collectionMaps from ${origin}`);
             let collection = (message as Content.CollectionMapsRequestOperation).collection;
-            nativePort.postMessage(new Native.NativeCollectionMapsRequestOperation(collection, origin));
+            nativePort.postMessage(new Native.CollectionMapsRequestOperation(collection, origin));
             break;
 
         case Content.OperationType.collectionsPageOpen:
             browser.tabs.create({url: "collections_page/collections_page.html"});
             break;
 
+        case Content.OperationType.collectionMapAdd:
+            const addM = message as Content.CollectionMapAddOperation;
+            nativePort.postMessage(new Native.CollectionMapAddOperation(addM.collection, addM.mapId));
+            break;
+
+        case Content.OperationType.collectionMapRemove:
+            const remM = message as Content.CollectionMapRemoveOperation;
+            nativePort.postMessage(new Native.CollectionMapRemoveOperation(remM.collection, remM.mapId));
+            break;
     
         default:
             console.warn(`Unknown operation from port ${port.sender?.tab?.id}!`, message);
@@ -140,7 +159,7 @@ function contentHandler(message: Content.Operation, port: Runtime.Port): void{
     }
 }
 
-function handleMapCheckResults(message: Native.NativeMapCheckOperation): void{
+function handleMapCheckResults(message: Native.MapCheckOperation): void{
     console.log(`Redirecting mapCheck results to port ${message.origin}`, message);
 
     let mapCollections = undefined;
@@ -161,17 +180,17 @@ function handleMapCheck(message: Content.MapCheckOperation, port: Runtime.Port){
     }
 
     console.log(`Map Check for ${message.mapId} from ${origin}`);
-    nativePort.postMessage(new Native.NativeMapCheckOperation(message.mapId, origin));
+    nativePort.postMessage(new Native.MapCheckOperation(message.mapId, origin));
 }
 
 function ping(): void{
     console.log("Pinging native host");
-    nativePort.postMessage(new Native.NativeOperation(Native.NativeOperationType.ping));
+    nativePort.postMessage(new Native.Operation(Native.OperationType.ping));
 }
 
 function killNative(): void{
     console.log("Killing native host");
-    nativePort.postMessage(new Native.NativeOperation(Native.NativeOperationType.exit));
+    nativePort.postMessage(new Native.Operation(Native.OperationType.exit));
 }
 
 function sendToAllPorts(obj: Content.Operation): void{

@@ -30,6 +30,16 @@ export class backgroundHandler{
                 let colMaps = message as Ops.CollectionMapsOperation;
                 if(this.collectionsMapsHandler) this.collectionsMapsHandler(colMaps.collection, colMaps.collectionSize, colMaps.maps);
                 break;
+
+            case Ops.OperationType.collectionMapAdd:
+                const addM = message as Ops.CollectionMapAddOperation;
+                if(this.collectionMapAddHandler) this.collectionMapAddHandler(addM.collection, addM.mapId);
+                break;
+    
+            case Ops.OperationType.collectionMapRemove:
+                const remM = message as Ops.CollectionMapRemoveOperation;
+                if(this.collectionMapRemoveHandler) this.collectionMapRemoveHandler(remM.collection, remM.mapId);
+                break;
             
         
             default:
@@ -47,6 +57,8 @@ export class backgroundHandler{
     public collectionsHandler: ((collections: [string]) => void) | undefined;
     public mapCheckResultsHandler: ((mapId: string, available: boolean, collections: [string] | undefined) => void) | undefined;
     public collectionsMapsHandler: ((collection: string, size: number, maps: [Beatmap.Beatmap]) => void) | undefined;
+    public collectionMapAddHandler: ((collection: string, mapId: string) => void) | undefined;
+    public collectionMapRemoveHandler: ((collection: string, mapId: string) => void) | undefined;
 
     private port!: Runtime.Port;
 }

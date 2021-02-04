@@ -169,6 +169,14 @@ namespace webCollections
                         HandleCollectionMaps(obj);
                         break;
                     
+                    case ExtensionCommunicator.OperationType.collectionMapAdd:
+                        HandleAddMapCollection(obj);
+                        break;
+                    
+                    case ExtensionCommunicator.OperationType.collectionMapRemove:
+                        HandleRemoveMapCollection(obj);
+                        break;
+                    
                     default:
                         SendError(obj, "Unsupported Operation");
                         break;

@@ -22,6 +22,8 @@ namespace webCollections
             collections,
             mapCheck,
             collectionMaps,
+            collectionMapAdd,
+            collectionMapRemove,
         }
         
         public static JObject Read()
