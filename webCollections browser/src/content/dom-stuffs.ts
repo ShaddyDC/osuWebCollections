@@ -103,9 +103,10 @@ export class DomStuffs{
         if(container) container.innerHTML = "";
         else{
             container = document.createElement("div");
-            container.className = "beatmapset-info__box beatmapset-info__box--meta";
+            container.className = "beatmapset-info__box beatmapset-info__box--meta u-fancy-scrollbar";
             container.id = "collections-container";
             mapsetInfo.insertBefore(container, mapsetInfo.children[1]);
+            container.style.overflow = "scroll";
         }
 
         // section + heading
