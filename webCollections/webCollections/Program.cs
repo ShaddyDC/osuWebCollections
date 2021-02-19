@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OsuParsers.Database;
 using OsuParsers.Decoders;
@@ -190,7 +190,7 @@ namespace webCollections
 
         static void Main(string[] args)
         {
-            if(args.Length == 1 && args[0] == "installFirefox")
+            if (args.Length == 1 && args[0] == "install")
             {
                 Installer.Install();
                 return;
