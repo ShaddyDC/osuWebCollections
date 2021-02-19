@@ -43,7 +43,6 @@ namespace webCollections
 
             if (s == "")
                 return null;
-            File.AppendAllText("packets", $"{s}\n");
             return JsonConvert.DeserializeObject<JObject>(s);
         }
 
