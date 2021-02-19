@@ -10,67 +10,103 @@ namespace webCollections
 {
     static class Installer
     {
-        private static readonly bool isWindows =
-            System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-        private static readonly string windowsFile = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName.Replace(@"\", @"\\");
-        private static readonly string linuxFile = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), "launch.sh");
-        private static readonly string launchFile = isWindows ? windowsFile : linuxFile;
+        private const string Title = "dev.shaddy.webcollections";
 
-        enum Browser
+        private static readonly bool IsWindows =
+            System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+        private static readonly string WindowsFile =
+            Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? string.Empty,
+                "launch.bat");
+
+        private static readonly string LinuxFile =
+            Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? string.Empty,
+                "launch.sh");
+
+        private static readonly string LaunchFile = (IsWindows ? WindowsFile : LinuxFile).Replace("\\", "/");
+
+        private enum Browser
         {
-            chrome, firefox
+            Chrome,
+            Firefox
         }
-        
+
         private static string connectorContent(Browser browser)
         {
             var allowedKey = browser switch
             {
-                Browser.chrome => "allowed_origins",
-                Browser.firefox => "allowed_extensions",
+                Browser.Chrome => "allowed_origins",
+                Browser.Firefox => "allowed_extensions",
                 _ => ""
             };
-            var allowedValue = browser switch
+            var allowedValue = browser switch //TODO update id
             {
-                Browser.chrome => "chrome-extension://pplnclfbilfnbjcdbjeoajbageakgjfa/",
-                Browser.firefox => "webcollections@shaddy.dev",
+                Browser.Chrome => "chrome-extension://pplnclfbilfnbjcdbjeoajbageakgjfa/",
+                Browser.Firefox => "webcollections@shaddy.dev",
                 _ => ""
             };
-            
-            
+
+
             return $@"{{
-  ""name"": ""dev.shaddy.webcollections"",
+  ""name"": ""{Title}"",
   ""description"": ""Example host for native messaging"",
-  ""path"": ""{launchFile}"",
+  ""path"": ""{LaunchFile}"",
   ""type"": ""stdio"",
   ""{allowedKey}"": [""{allowedValue}""]
 }}";
         }
 
-        private static readonly string linuxLaunchContent = $"#!/bin/sh\nDIR=\"$( cd \"$( dirname \"${{BASH_SOURCE[0]}}\" )\" >/dev/null 2>&1 && pwd )\"\ndotnet \"$DIR/{Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location)}\"";
+        private static readonly string WindowsFileContent =
+            $"@echo off\ndotnet {System.Reflection.Assembly.GetEntryAssembly().Location}";
 
-        private static readonly string[] firefoxRegistryFolders =
+        private static readonly string LinuxLaunchContent = //TODO try without DIR GetFileName
+            $"#!/bin/sh\nDIR=\"$( cd \"$( dirname \"${{BASH_SOURCE[0]}}\" )\" >/dev/null 2>&1 && pwd )\"\nexec dotnet \"$DIR/{Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location)}\"";
+
+        private static readonly string[] FirefoxRegistryFolders =
         {
             @"SOFTWARE\Mozilla\NativeMessagingHosts",
             @"SOFTWARE\Mozilla\ManagedStorage",
             @"SOFTWARE\Mozilla\PKCS11Modules"
         };
 
-        static internal void Install()
+        private static readonly string[] ChromeRegistryFolders =
         {
-            var file = "dev.shaddy.webcollections.json";
+            @"SOFTWARE\Google\Chrome\NativeMessagingHosts",
+        };
 
-            if (isWindows)
+        internal static void Install()
+        {
+            const string file = Title + ".json";
+
+            if (IsWindows)
             {
-                file = Path.GetFullPath(file);
-                Console.WriteLine($"Creating {file}...");
-                File.WriteAllText(file, connectorContent(Browser.firefox));
-                
-                Console.WriteLine($"Pointing registry to file...");
-                foreach (var key_folder in firefoxRegistryFolders)
+                var firefoxFile = Path.GetFullPath("firefox-" + file);
+
+                Console.WriteLine($"Creating {firefoxFile}...");
+                File.WriteAllText(firefoxFile, connectorContent(Browser.Firefox));
+
+                Console.WriteLine($"Pointing registry to firefox file...");
+                foreach (var keyFolder in FirefoxRegistryFolders)
                 {
-                    var key = Registry.CurrentUser.CreateSubKey(Path.Combine(key_folder, "webcollections"));
-                    key.SetValue("", file);
+                    var key = Registry.CurrentUser.CreateSubKey(Path.Combine(keyFolder, Title));
+                    if (key == null) Console.WriteLine("Couldn't create key");
+                    else key.SetValue("", firefoxFile);
                 }
+
+                var chromeFile = Path.GetFullPath("chrome-" + file);
+                Console.WriteLine($"Creating {chromeFile}...");
+                File.WriteAllText(chromeFile, connectorContent(Browser.Chrome));
+
+                Console.WriteLine($"Pointing registry to chrome file...");
+                foreach (var keyFolder in ChromeRegistryFolders)
+                {
+                    var key = Registry.CurrentUser.CreateSubKey(Path.Combine(keyFolder, Title));
+                    if (key == null) Console.WriteLine("Couldn't create key");
+                    else key.SetValue("", chromeFile);
+                }
+
+                Console.WriteLine($"Adding launch file");
+                File.WriteAllText(WindowsFile, WindowsFileContent);
             }
             else
             {
@@ -82,7 +118,7 @@ namespace webCollections
                 if (Directory.Exists(Path.GetFullPath(chromeFile)))
                 {
                     Console.WriteLine($"Creating {chromeFile}...");
-                    File.WriteAllText(chromeFile, connectorContent(Browser.chrome));
+                    File.WriteAllText(chromeFile, connectorContent(Browser.Chrome));
                     Exec($"chmod o+r {chromeFile}");
                 }
 
@@ -90,19 +126,19 @@ namespace webCollections
                 if (Directory.Exists(Path.GetFullPath(firefoxFile)))
                 {
                     Console.WriteLine($"Creating {firefoxFile}...");
-                    File.WriteAllText(firefoxFile, connectorContent(Browser.firefox));
+                    File.WriteAllText(firefoxFile, connectorContent(Browser.Firefox));
                     Exec($"chmod o+r {firefoxFile}");
                 }
 
                 Console.WriteLine($"Adding launch file and making it executable");
-                File.WriteAllText(linuxFile, linuxLaunchContent);
-                Exec($"chmod +x \"{linuxFile}\"");
+                File.WriteAllText(LinuxFile, LinuxLaunchContent);
+                Exec($"chmod +x \"{LinuxFile}\"");
             }
 
             Console.WriteLine("Installed!");
         }
-        
-        public static void Exec(string cmd)
+
+        private static void Exec(string cmd)
         {
             var escapedArgs = cmd.Replace("\"", "\\\"");
 
