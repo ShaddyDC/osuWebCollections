@@ -1,31 +1,15 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace webCollections
 {
-    static class ExtensionCommunicator
+    internal static class ExtensionCommunicator
     {
-        internal enum OperationType
-        {
-            multiPacket,
-            ping,
-            pong,
-            error,
-            status,
-            exit,
-            osuFolder,
-            collections,
-            mapCheck,
-            collectionMaps,
-            collectionMapAdd,
-            collectionMapRemove,
-        }
-        
+        private static int _messageId;
+
         public static JObject Read()
         {
             var stdin = Console.OpenStandardInput();
@@ -39,6 +23,7 @@ namespace webCollections
             {
                 reader.Read(buffer);
             }
+
             var s = new string(buffer);
 
             if (s == "")
@@ -46,7 +31,6 @@ namespace webCollections
             return JsonConvert.DeserializeObject<JObject>(s);
         }
 
-        private static int _messageId = 0;
         public static void Write(JObject obj)
         {
             const int maximumMessageSize = 1024 * 1024 / 2; // 2 because of UTF-16
@@ -59,16 +43,16 @@ namespace webCollections
                 Write(s);
                 return;
             }
-            
+
             var messageId = _messageId++;
-            
+
             do
             {
                 var length = Math.Min(maximumMessageSize - margin, s.Length);
                 Program.SendStatus($"Using {length}/{s.Length}");
                 var current = s.Substring(0, length);
                 s = s.Remove(0, length);
-                Program.SendStatus($"did string stuff");
+                Program.SendStatus("did string stuff");
                 var currentObj = new JObject
                 {
                     ["id"] = messageId,
@@ -76,7 +60,7 @@ namespace webCollections
                     ["data"] = current,
                     ["finished"] = s.Length == 0
                 };
-                
+
                 Write(currentObj.ToString(Formatting.None));
             } while (s.Length != 0);
         }
@@ -84,10 +68,26 @@ namespace webCollections
         private static void Write(string s)
         {
             var stdout = Console.OpenStandardOutput();
-            var bytes = System.Text.Encoding.UTF8.GetBytes(s);
+            var bytes = Encoding.UTF8.GetBytes(s);
             stdout.Write(BitConverter.GetBytes(bytes.Length));
             stdout.Write(bytes);
             stdout.Flush();
+        }
+
+        internal enum OperationType
+        {
+            multiPacket,
+            ping,
+            pong,
+            error,
+            status,
+            exit,
+            osuFolder,
+            collections,
+            mapCheck,
+            collectionMaps,
+            collectionMapAdd,
+            collectionMapRemove
         }
     }
 }

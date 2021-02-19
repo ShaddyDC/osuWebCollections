@@ -1,35 +1,46 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
+using Microsoft.Win32;
 
 namespace webCollections
 {
-    static class Installer
+    internal static class Installer
     {
         private const string Title = "dev.shaddy.webcollections";
 
         private static readonly bool IsWindows =
-            System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
         private static readonly string WindowsFile =
-            Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? string.Empty,
+            Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty,
                 "launch.bat");
 
         private static readonly string LinuxFile =
-            Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? string.Empty,
+            Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty,
                 "launch.sh");
 
         private static readonly string LaunchFile = (IsWindows ? WindowsFile : LinuxFile).Replace("\\", "/");
 
-        private enum Browser
+        private static readonly string WindowsFileContent =
+            $"@echo off\ndotnet {Assembly.GetEntryAssembly().Location}";
+
+        private static readonly string LinuxLaunchContent = //TODO try without DIR GetFileName
+            $"#!/bin/sh\nDIR=\"$( cd \"$( dirname \"${{BASH_SOURCE[0]}}\" )\" >/dev/null 2>&1 && pwd )\"\nexec dotnet \"$DIR/{Path.GetFileName(Assembly.GetEntryAssembly().Location)}\"";
+
+        private static readonly string[] FirefoxRegistryFolders =
         {
-            Chrome,
-            Firefox
-        }
+            @"SOFTWARE\Mozilla\NativeMessagingHosts",
+            @"SOFTWARE\Mozilla\ManagedStorage",
+            @"SOFTWARE\Mozilla\PKCS11Modules"
+        };
+
+        private static readonly string[] ChromeRegistryFolders =
+        {
+            @"SOFTWARE\Google\Chrome\NativeMessagingHosts"
+        };
 
         private static string connectorContent(Browser browser)
         {
@@ -56,24 +67,6 @@ namespace webCollections
 }}";
         }
 
-        private static readonly string WindowsFileContent =
-            $"@echo off\ndotnet {System.Reflection.Assembly.GetEntryAssembly().Location}";
-
-        private static readonly string LinuxLaunchContent = //TODO try without DIR GetFileName
-            $"#!/bin/sh\nDIR=\"$( cd \"$( dirname \"${{BASH_SOURCE[0]}}\" )\" >/dev/null 2>&1 && pwd )\"\nexec dotnet \"$DIR/{Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location)}\"";
-
-        private static readonly string[] FirefoxRegistryFolders =
-        {
-            @"SOFTWARE\Mozilla\NativeMessagingHosts",
-            @"SOFTWARE\Mozilla\ManagedStorage",
-            @"SOFTWARE\Mozilla\PKCS11Modules"
-        };
-
-        private static readonly string[] ChromeRegistryFolders =
-        {
-            @"SOFTWARE\Google\Chrome\NativeMessagingHosts",
-        };
-
         internal static void Install()
         {
             const string file = Title + ".json";
@@ -85,7 +78,7 @@ namespace webCollections
                 Console.WriteLine($"Creating {firefoxFile}...");
                 File.WriteAllText(firefoxFile, connectorContent(Browser.Firefox));
 
-                Console.WriteLine($"Pointing registry to firefox file...");
+                Console.WriteLine("Pointing registry to firefox file...");
                 foreach (var keyFolder in FirefoxRegistryFolders)
                 {
                     var key = Registry.CurrentUser.CreateSubKey(Path.Combine(keyFolder, Title));
@@ -97,7 +90,7 @@ namespace webCollections
                 Console.WriteLine($"Creating {chromeFile}...");
                 File.WriteAllText(chromeFile, connectorContent(Browser.Chrome));
 
-                Console.WriteLine($"Pointing registry to chrome file...");
+                Console.WriteLine("Pointing registry to chrome file...");
                 foreach (var keyFolder in ChromeRegistryFolders)
                 {
                     var key = Registry.CurrentUser.CreateSubKey(Path.Combine(keyFolder, Title));
@@ -105,7 +98,7 @@ namespace webCollections
                     else key.SetValue("", chromeFile);
                 }
 
-                Console.WriteLine($"Adding launch file");
+                Console.WriteLine("Adding launch file");
                 File.WriteAllText(WindowsFile, WindowsFileContent);
             }
             else
@@ -130,7 +123,7 @@ namespace webCollections
                     Exec($"chmod o+r {firefoxFile}");
                 }
 
-                Console.WriteLine($"Adding launch file and making it executable");
+                Console.WriteLine("Adding launch file and making it executable");
                 File.WriteAllText(LinuxFile, LinuxLaunchContent);
                 Exec($"chmod +x \"{LinuxFile}\"");
             }
@@ -157,6 +150,12 @@ namespace webCollections
 
             process.Start();
             process.WaitForExit();
+        }
+
+        private enum Browser
+        {
+            Chrome,
+            Firefox
         }
     }
 }

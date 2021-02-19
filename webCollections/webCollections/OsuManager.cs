@@ -1,26 +1,22 @@
-﻿using OsuParsers.Beatmaps;
-using OsuParsers.Database;
-using OsuParsers.Database.Objects;
-using OsuParsers.Decoders;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
+using OsuParsers.Database;
+using OsuParsers.Database.Objects;
+using OsuParsers.Decoders;
 
 namespace webCollections
 {
-    class OsuManager
+    internal class OsuManager
     {
-        private OsuDatabase osuDb;
-        private CollectionDatabase collectionDb;
-        private Dictionary<string, DbBeatmap> hashBeatmaps = new Dictionary<string, DbBeatmap>();
-        private readonly string osuFolder = null;
-        private string songsFolder => Path.Combine(osuFolder, "Songs");
-        private string osuCollectionFile => Path.Combine(osuFolder, "collection.db");
-        private string osuDbFile => Path.Combine(osuFolder, "osu!.db");
+        private readonly CollectionDatabase collectionDb;
+        private readonly Dictionary<string, DbBeatmap> hashBeatmaps = new Dictionary<string, DbBeatmap>();
+        private readonly OsuDatabase osuDb;
+        private readonly string osuFolder;
+
         internal OsuManager(string osuFolder)
         {
             this.osuFolder = osuFolder;
@@ -28,10 +24,12 @@ namespace webCollections
             collectionDb = DatabaseDecoder.DecodeCollection(osuCollectionFile);
 
             foreach (var beatmap in osuDb.Beatmaps.Where(x => x.MD5Hash != null))
-            {
                 hashBeatmaps[beatmap.MD5Hash] = beatmap;
-            }
         }
+
+        private string songsFolder => Path.Combine(osuFolder, "Songs");
+        private string osuCollectionFile => Path.Combine(osuFolder, "collection.db");
+        private string osuDbFile => Path.Combine(osuFolder, "osu!.db");
 
         internal string MapHash(int mapId)
         {
@@ -41,7 +39,7 @@ namespace webCollections
         internal List<string> IdCollections(int mapId)
         {
             var hash = MapHash(mapId);
-            if (hash == null) return new List<string>();    //Todo: Download missing
+            if (hash == null) return new List<string>(); //Todo: Download missing
             return collectionDb.Collections.FindAll(x => x.MD5Hashes.Contains(hash)).Select(x => x.Name).ToList();
         }
 
@@ -58,19 +56,20 @@ namespace webCollections
 
         private List<DbBeatmap> CollectionBeatmaps(Collection collection)
         {
-            return collection.MD5Hashes.Select(hash => hashBeatmaps.GetValueOrDefault(hash)).Where(song => song != null).ToList();
+            return collection.MD5Hashes.Select(hash => hashBeatmaps.GetValueOrDefault(hash)).Where(song => song != null)
+                .ToList();
         }
 
         internal IEnumerable<(string, int, List<DbBeatmap>)> CollectionsMaps(int maxSize = 100)
         {
             foreach (var collection in collectionDb.Collections)
             {
-                List<DbBeatmap> beatmaps = new List<DbBeatmap>();
+                var beatmaps = new List<DbBeatmap>();
 
                 if (collection.MD5Hashes.Count <= maxSize)
                     beatmaps = CollectionBeatmaps(collection);
-                
-                yield return(collection.Name, collection.MD5Hashes.Count, beatmaps);
+
+                yield return (collection.Name, collection.MD5Hashes.Count, beatmaps);
             }
         }
 
@@ -79,7 +78,7 @@ namespace webCollections
             var collection = collectionDb.Collections.Find(x => x.Name == collectionName);
             if (collection == null)
             {
-                collection = new OsuParsers.Database.Objects.Collection
+                collection = new Collection
                 {
                     Name = collectionName,
                     Count = 1
@@ -101,8 +100,9 @@ namespace webCollections
         {
             var newFile = Path.Combine(songsFolder, Path.GetFileName(mapFile));
             File.Move(mapFile, newFile, true);
-            using(var zip = ZipFile.OpenRead(newFile)){
-                foreach(var entry in zip.Entries.Where(entry => entry.Name.EndsWith(".osu")))
+            using (var zip = ZipFile.OpenRead(newFile))
+            {
+                foreach (var entry in zip.Entries.Where(entry => entry.Name.EndsWith(".osu")))
                 {
                     // Add information to collection that is used for future operation
                     // Note that this data is not saved to disk and will still be populated by osu normally

@@ -1,45 +1,39 @@
+﻿using System;
+using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using OsuParsers.Database;
-using OsuParsers.Decoders;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
 
 namespace webCollections
 {
-    class Program
+    internal class Program
     {
-        OsuManager osuManager;
+        private OsuManager osuManager;
         private bool running = true;
-        Program()
+
+        private Program()
         {
             SendStatus("Waiting for osu folder");
         }
 
-
-        
         public static void SendStatus(string status)
         {
             var obj = new JObject
             {
-                ["operation"] = (int)ExtensionCommunicator.OperationType.status,
+                ["operation"] = (int) ExtensionCommunicator.OperationType.status,
                 ["status"] = status
             };
             ExtensionCommunicator.Write(obj);
         }
 
-        void SendError(JObject obj, string error)
+        private void SendError(JObject obj, string error)
         {
             obj["obj"] = obj;
-            obj["operation"] = (int)ExtensionCommunicator.OperationType.error;
+            obj["operation"] = (int) ExtensionCommunicator.OperationType.error;
             obj["error"] = error;
             ExtensionCommunicator.Write(obj);
         }
 
-        void HandleMapCheck(JObject obj)
+        private void HandleMapCheck(JObject obj)
         {
             var mapId = obj["mapId"]?.ToObject<int>();
             if (mapId == null)
@@ -47,6 +41,7 @@ namespace webCollections
                 SendError(obj, "mapCheck has no mapId specified");
                 return;
             }
+
             var available = osuManager.MapHash(mapId.Value) != null;
             obj["available"] = available;
             if (available)
@@ -54,21 +49,22 @@ namespace webCollections
                 var list = osuManager.IdCollections(mapId.Value);
                 obj["mapCollectionsJSON"] = JsonConvert.SerializeObject(list);
             }
+
             ExtensionCommunicator.Write(obj);
         }
 
-        void HandleAddMapCollection(JObject obj)
+        private void HandleAddMapCollection(JObject obj)
         {
             var mapId = obj["mapId"].ToObject<int>();
             var hash = osuManager.MapHash(mapId);
             var collection = obj["collection"].ToString();
             osuManager.AddMapCollection(hash, collection);
 
-            SendCollections();  //Todo: Only send when new collection
+            SendCollections(); //Todo: Only send when new collection
             ExtensionCommunicator.Write(obj);
         }
 
-        void HandleRemoveMapCollection(JObject obj)
+        private void HandleRemoveMapCollection(JObject obj)
         {
             var mapId = obj["mapId"].ToObject<int>();
             var hash = osuManager.MapHash(mapId);
@@ -78,7 +74,7 @@ namespace webCollections
             ExtensionCommunicator.Write(obj);
         }
 
-        void HandleAddMapFile(JObject obj)
+        private void HandleAddMapFile(JObject obj)
         {
             var mapFile = obj["mapFile"].ToString();
             osuManager.AddMapFile(mapFile);
@@ -107,16 +103,16 @@ namespace webCollections
                     ExtensionCommunicator.Write(obj);
                 }
             }
-
         }
-        
-        void HandleOsuFolder(JObject obj)
+
+        private void HandleOsuFolder(JObject obj)
         {
             if (obj["osuFolder"] == null)
             {
                 SendError(obj, "osuFolder Operation requires osuFolder to be set");
                 return;
             }
+
             var folder = obj["osuFolder"].ToString();
             SendStatus("Loading databases");
             osuManager = new OsuManager(folder);
@@ -124,17 +120,17 @@ namespace webCollections
             SendCollections();
         }
 
-        void SendCollections()
+        private void SendCollections()
         {
             var obj = new JObject
             {
-                ["operation"] = (int)ExtensionCommunicator.OperationType.collections,
+                ["operation"] = (int) ExtensionCommunicator.OperationType.collections,
                 ["collectionsJSON"] = JsonConvert.SerializeObject(osuManager.Collections())
             };
             ExtensionCommunicator.Write(obj);
         }
 
-        void HandleOperation()
+        private void HandleOperation()
         {
             var obj = ExtensionCommunicator.Read();
             if (obj == null) return;
@@ -145,38 +141,39 @@ namespace webCollections
                 return;
             }
 
-            try { 
-                switch ((ExtensionCommunicator.OperationType)obj["operation"].ToObject<int>())
+            try
+            {
+                switch ((ExtensionCommunicator.OperationType) obj["operation"].ToObject<int>())
                 {
                     case ExtensionCommunicator.OperationType.ping:
-                        obj["operation"] = (int)ExtensionCommunicator.OperationType.pong;
+                        obj["operation"] = (int) ExtensionCommunicator.OperationType.pong;
                         ExtensionCommunicator.Write(obj);
                         break;
                     case ExtensionCommunicator.OperationType.exit:
                         running = false;
                         SendStatus("Exiting...");
                         break;
-                    
+
                     case ExtensionCommunicator.OperationType.osuFolder:
                         HandleOsuFolder(obj);
                         break;
-                    
+
                     case ExtensionCommunicator.OperationType.mapCheck:
                         HandleMapCheck(obj);
                         break;
-                    
+
                     case ExtensionCommunicator.OperationType.collectionMaps:
                         HandleCollectionMaps(obj);
                         break;
-                    
+
                     case ExtensionCommunicator.OperationType.collectionMapAdd:
                         HandleAddMapCollection(obj);
                         break;
-                    
+
                     case ExtensionCommunicator.OperationType.collectionMapRemove:
                         HandleRemoveMapCollection(obj);
                         break;
-                    
+
                     default:
                         SendError(obj, "Unsupported Operation");
                         break;
@@ -188,7 +185,7 @@ namespace webCollections
             }
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             if (args.Length == 1 && args[0] == "install")
             {
