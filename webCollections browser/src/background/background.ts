@@ -140,7 +140,7 @@ function contentHandler(message: Content.Operation, port: Runtime.Port): void{
             break;
 
         case Content.OperationType.collectionsPageOpen:
-            browser.tabs.create({url: "collections_page/collections_page.html"});
+            browser.tabs.create({url: "/src/collections_page/collections_page.html"});
             break;
 
         case Content.OperationType.collectionMapAdd:
@@ -207,7 +207,7 @@ function main(): void{
     console.log("Connected to native port!");
 
     // Ping host when icon is clicked
-    browser.browserAction.onClicked.addListener(()=>browser.tabs.create({url: "collections_page/collections_page.html"}));
+    browser.browserAction.onClicked.addListener(()=>browser.tabs.create({url: "/src/collections_page/collections_page.html"}));
 
     loadSettings();
     browser.storage.onChanged.addListener(loadSettings);

@@ -2,19 +2,36 @@
   "name": "webcollections-browser",
   "version": "0.1.0",
   "description": "Edit local osu collections on beatmap page",
+  "targets": {
+    "webext-dev": {
+      "sourceMap": {
+        "inline": true,
+        "inlineSources": true
+      }
+    },
+    "webext-prod": {}
+  },
   "scripts": {
-    "build": "parcel build src/background/background.ts src/content/content-script.ts src/options/options.ts src/popup/popup.ts src/collections_page/collections_page.ts --public-url ./",
-    "watch": "parcel watch src/background/background.ts src/content/content-script.ts src/options/options.ts src/popup/popup.ts src/collections_page/collections_page.ts --public-url ./ & web-ext run"
+    "start": "parcel watch manifest.json src/collections_page/collections_page.html --host localhost --target webext-dev & (cd dist/webext-dev && web-ext run)",
+    "build": "parcel build manifest.json src/collections_page/collections_page.html --target webext-prod"
   },
   "author": "Shaddy",
   "license": "MIT",
-  "dependencies": {
-    "eslint": "^7.18.0",
-    "parcel": "^2.0.0-beta.1",
-    "typescript": "^4.1.3",
-    "web-ext": "^5.5.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "webextension-polyfill-ts": "^0.22.0"
+    "@parcel/config-webextension": "^2.0.0-nightly.2222",
+    "@parcel/optimizer-cssnano": "^2.0.0-nightly.600",
+    "@parcel/optimizer-htmlnano": "^2.0.0-nightly.600",
+    "@parcel/packager-css": "^2.0.0-nightly.600",
+    "@parcel/packager-html": "^2.0.0-nightly.600",
+    "@parcel/transformer-babel": "^2.0.0-nightly.600",
+    "@parcel/transformer-css": "^2.0.0-nightly.600",
+    "@parcel/transformer-html": "^2.0.0-nightly.600",
+    "@parcel/transformer-postcss": "^2.0.0-nightly.600",
+    "@parcel/transformer-posthtml": "^2.0.0-nightly.600",
+    "parcel": "^2.0.0-nightly.598",
+    "postcss": "^8.2.6",
+    "web-ext": "^5.5.0",
+    "webextension-polyfill-ts": "^0.25.0"
   }
 }

@@ -1,4 +1,3 @@
 
-dist/**/*.js
-dist/**/*.js.map
+dist/
 .parcel-cache

@@ -23,16 +23,17 @@
         "default_title": "webCollections"
     },
     "options_ui": {
-        "page": "options/options.html",
+        "page": "src/options/options.html",
+        "chrome_style": true,
         "browser_style": true
     },
     "background": {
-        "scripts": ["dist/background/background.js"]
+        "scripts": ["src/background/background.ts"]
     },
     "content_scripts": [
         {
             "matches": ["*://osu.ppy.sh/*"],
-            "js": ["dist/content/content-script.js"]
+            "js": ["src/content/content-script.ts"]
         }
     ]
 }
