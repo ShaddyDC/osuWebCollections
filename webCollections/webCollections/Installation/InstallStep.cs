@@ -52,7 +52,7 @@ namespace webCollections.Installation
 
         public ConfigFileStep(string filename, string content)
         {
-            Filename = filename;
+            Filename = Path.GetFullPath(filename);
             _content = content;
         }
 
@@ -60,7 +60,7 @@ namespace webCollections.Installation
         {
             Console.Write($"Creating file '{Filename}'... ");
 
-            if (!Directory.Exists(Path.GetFullPath(Filename)))
+            if (!Directory.Exists(Path.GetDirectoryName(Filename)))
             {
                 Console.WriteLine("Directory doesn't exist!");
                 return;
@@ -72,7 +72,7 @@ namespace webCollections.Installation
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || !File.Exists(Filename)) return;
             Console.Write("Making file readable... ");
-            Exec($"chmod o+r {Filename}");
+            Exec($"chmod o+r \"{Filename}\"");
             Console.WriteLine("Done!");
         }
 
