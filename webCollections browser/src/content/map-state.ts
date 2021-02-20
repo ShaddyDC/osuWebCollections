@@ -1,7 +1,11 @@
-export class MapState{
-    public hostReady = false;
-    public mapLoaded = false;
-    public mapAvailable = false;
-    public collections: [string] | undefined = undefined;
-    public mapCollections: [string] | undefined = undefined;
+export default class MapState {
+  public hostReady = false;
+
+  public mapLoaded = false;
+
+  public mapAvailable = false;
+
+  public collections: [string] | undefined = undefined;
+
+  public mapCollections: [string] | undefined = undefined;
 }

@@ -1,14 +1,14 @@
 .collapsed {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.2s ease-out;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.2s ease-out;
 }
 
-.cover-preview{
-    border: none;
-    display: none;
-    position: absolute;
-    overflow: visible;
-    width: 100%;
-    height: 100%;
+.cover-preview {
+  border: none;
+  display: none;
+  position: absolute;
+  overflow: visible;
+  width: 100%;
+  height: 100%;
 }
