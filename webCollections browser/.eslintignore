@@ -1,1 +1,4 @@
 web-ext-config.js
+.eslintrc.js
+node_modules
+dist
