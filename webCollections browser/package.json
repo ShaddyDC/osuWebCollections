@@ -14,7 +14,7 @@
   "scripts": {
     "start": "parcel watch manifest.json src/collections_page/collections_page.html --host localhost --target webext-dev & (cd dist/webext-dev && web-ext run)",
     "build": "parcel build manifest.json src/collections_page/collections_page.html --target webext-prod",
-    "lint": "npx eslint src --ext .jsx,.ts,.tsx,.js,.css --fix",
+    "lint": "npx eslint src --ext .jsx,.ts,.tsx,.js --fix",
     "format": "npx prettier -w src/*"
   },
   "author": "Shaddy",
