@@ -9,10 +9,10 @@
     },
     "browser_specific_settings": {
         "gecko": {
-          "id": "webcollections@shaddy.dev",
-          "strict_min_version": "57.0"
+            "id": "webcollections@shaddy.dev",
+            "strict_min_version": "57.0"
         }
-      },
+    },
     "permissions": [
         "nativeMessaging",
         "downloads",
@@ -29,12 +29,18 @@
         "browser_style": true
     },
     "background": {
-        "scripts": ["src/background/background.ts"]
+        "scripts": [
+            "src/background/background.ts"
+        ]
     },
     "content_scripts": [
         {
-            "matches": ["*://osu.ppy.sh/*"],
-            "js": ["src/content/content-script.ts"]
+            "matches": [
+                "*://osu.ppy.sh/*"
+            ],
+            "js": [
+                "src/content/content-script.ts"
+            ]
         }
     ]
 }
