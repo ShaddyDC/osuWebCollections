@@ -38,44 +38,55 @@ namespace webCollections.Installation
 
         public void Undo()
         {
-            throw new NotImplementedException();
+            Console.Write($"Removing Registry key '{_key}'... ");
+            Registry.CurrentUser.DeleteSubKeyTree(_key);
+            Console.WriteLine("Done!");
         }
     }
 
     internal class ConfigFileStep : INInstallStep
     {
-        protected readonly string File;
+        protected readonly string Filename;
         private readonly string _content;
 
-        public ConfigFileStep(string file, string content)
+        public ConfigFileStep(string filename, string content)
         {
-            File = file;
+            Filename = filename;
             _content = content;
         }
 
         public void Apply()
         {
-            Console.Write($"Creating file '{File}'... ");
+            Console.Write($"Creating file '{Filename}'... ");
 
-            if (!Directory.Exists(Path.GetFullPath(File)))
+            if (!Directory.Exists(Path.GetFullPath(Filename)))
             {
                 Console.WriteLine("Directory doesn't exist!");
                 return;
             }
 
-            System.IO.File.WriteAllText(File, _content);
+            File.WriteAllText(Filename, _content);
 
             Console.WriteLine("Done!");
             
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || !System.IO.File.Exists(File)) return;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || !File.Exists(Filename)) return;
             Console.Write("Making file readable... ");
-            Exec($"chmod o+r {File}");
+            Exec($"chmod o+r {Filename}");
             Console.WriteLine("Done!");
         }
 
         public void Undo()
         {
-            throw new NotImplementedException();
+            Console.Write($"Removing file '{Filename}'... ");
+
+            if (!File.Exists(Path.GetFullPath(Filename)))
+            {
+                Console.WriteLine("File doesn't exist!");
+                return;
+            }
+
+            File.Delete(Filename);
+            Console.WriteLine("Done!");
         }
         
         protected static void Exec(string cmd)
@@ -102,7 +113,7 @@ namespace webCollections.Installation
 
     internal class ExeFileStep : ConfigFileStep
     {
-        public ExeFileStep(string file, string content) : base(file, content)
+        public ExeFileStep(string filename, string content) : base(filename, content)
         {
         }
 
@@ -110,10 +121,10 @@ namespace webCollections.Installation
         {
             base.Apply();
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || !System.IO.File.Exists(File)) return;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || !File.Exists(Filename)) return;
             
             Console.Write($"Making file executable ... ");
-            Exec($"chmod +x \"{File}\"");
+            Exec($"chmod +x \"{Filename}\"");
             Console.WriteLine("Done!");
 
         }

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Microsoft.Win32;
 
 namespace webCollections.Installation
 {
@@ -57,7 +54,7 @@ namespace webCollections.Installation
 }}";
         }
 
-        internal static void Install()
+        internal static INInstallStep[] InstallSteps()
         {
             const string file = Title + ".json";
 
@@ -78,12 +75,7 @@ namespace webCollections.Installation
                     new ExeFileStep(WindowsFile, WindowsFileContent)
                 };
 
-                foreach (var step in installationSteps)
-                {
-                    step.Apply();
-                }
-
-                Console.WriteLine("Finished installing!");
+                return installationSteps;
             }
             else
             {
@@ -91,17 +83,40 @@ namespace webCollections.Installation
                     ".mozilla/native-messaging-hosts", file);
                 var chromeFile = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                     ".config/google-chrome/NativeMessagingHosts", file);
-                
+
                 var installationSteps = new INInstallStep[]
                 {
                     new ConfigFileStep(chromeFile, ConnectorContent(Browser.Chrome)),
                     new ConfigFileStep(firefoxFile, ConnectorContent(Browser.Firefox)),
                     new ExeFileStep(LinuxFile, LinuxLaunchContent)
-                    
                 };
-            }
 
+                return installationSteps;
+            }
+        }
+
+        internal static void Install()
+        {
+            var installationSteps = InstallSteps();
+
+            foreach(var step in installationSteps)
+            {
+                step.Apply();
+            }
+            
             Console.WriteLine("Finished installing!");
+        }
+
+        internal static void Uninstall()
+        {
+            var installationSteps = InstallSteps();
+
+            foreach(var step in installationSteps)
+            {
+                step.Undo();
+            }
+            
+            Console.WriteLine("Finished uninstalling!");
         }
 
         private enum Browser

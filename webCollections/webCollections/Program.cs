@@ -188,10 +188,14 @@ namespace webCollections
 
         private static void Main(string[] args)
         {
-            if (args.Length == 1 && args[0] == "install")
+            switch (args.Length)
             {
-                Installer.Install();
-                return;
+                case 1 when args[0] == "install":
+                    Installer.Install();
+                    return;
+                case 1 when args[0] == "uninstall":
+                    Installer.Uninstall();
+                    return;
             }
 
             var program = new Program();
