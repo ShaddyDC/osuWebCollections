@@ -22,7 +22,7 @@ namespace webCollections.Installation
             _key = key;
             _value = value;
         }
-        
+
         public void Apply()
         {
             Console.Write($"Creating Registry key '{_key}' with value '{_value}'... ");
@@ -32,6 +32,7 @@ namespace webCollections.Installation
                 Console.WriteLine("Couldn't create key!");
                 return;
             }
+
             key.SetValue("", _value);
             Console.WriteLine("Done!");
         }
@@ -46,8 +47,8 @@ namespace webCollections.Installation
 
     internal class ConfigFileStep : INInstallStep
     {
-        protected readonly string Filename;
         private readonly string _content;
+        protected readonly string Filename;
 
         public ConfigFileStep(string filename, string content)
         {
@@ -68,7 +69,7 @@ namespace webCollections.Installation
             File.WriteAllText(Filename, _content);
 
             Console.WriteLine("Done!");
-            
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || !File.Exists(Filename)) return;
             Console.Write("Making file readable... ");
             Exec($"chmod o+r {Filename}");
@@ -88,7 +89,7 @@ namespace webCollections.Installation
             File.Delete(Filename);
             Console.WriteLine("Done!");
         }
-        
+
         protected static void Exec(string cmd)
         {
             var escapedArgs = cmd.Replace("\"", "\\\"");
@@ -122,11 +123,10 @@ namespace webCollections.Installation
             base.Apply();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || !File.Exists(Filename)) return;
-            
-            Console.Write($"Making file executable ... ");
+
+            Console.Write("Making file executable ... ");
             Exec($"chmod +x \"{Filename}\"");
             Console.WriteLine("Done!");
-
         }
     }
 }

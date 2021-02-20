@@ -19,7 +19,7 @@ namespace webCollections
 
         internal OsuManager(string osuFolder)
         {
-            this._osuFolder = osuFolder;
+            _osuFolder = osuFolder;
             _osuDb = DatabaseDecoder.DecodeOsu(OsuDbFile);
             _collectionDb = DatabaseDecoder.DecodeCollection(OsuCollectionFile);
 
@@ -56,7 +56,8 @@ namespace webCollections
 
         private List<DbBeatmap> CollectionBeatmaps(Collection collection)
         {
-            return collection.MD5Hashes.Select(hash => _hashBeatmaps.GetValueOrDefault(hash)).Where(song => song != null)
+            return collection.MD5Hashes.Select(hash => _hashBeatmaps.GetValueOrDefault(hash))
+                .Where(song => song != null)
                 .ToList();
         }
 

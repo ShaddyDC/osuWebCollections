@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace webCollections.Installation
 {
@@ -19,9 +17,12 @@ namespace webCollections.Installation
                 {
                     new ConfigFileStep(firefoxFile, InstallData.ConnectorContent(InstallData.Browser.Firefox)),
                     new RegistryKeyStep(chromeFile, InstallData.ConnectorContent(InstallData.Browser.Chrome)),
-                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\NativeMessagingHosts", InstallData.Title), firefoxFile),
-                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\ManagedStorage", InstallData.Title), firefoxFile),
-                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\PKCS11Modules", InstallData.Title), firefoxFile),
+                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\NativeMessagingHosts", InstallData.Title),
+                        firefoxFile),
+                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\ManagedStorage", InstallData.Title),
+                        firefoxFile),
+                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\PKCS11Modules", InstallData.Title),
+                        firefoxFile),
                     new RegistryKeyStep(Path.Combine(@"SOFTWARE\Google\Chrome\NativeMessagingHosts", InstallData.Title),
                         chromeFile),
                     new ExeFileStep(InstallData.WindowsFile, InstallData.WindowsFileContent)
@@ -51,11 +52,8 @@ namespace webCollections.Installation
         {
             var installationSteps = InstallSteps();
 
-            foreach(var step in installationSteps)
-            {
-                step.Apply();
-            }
-            
+            foreach (var step in installationSteps) step.Apply();
+
             Console.WriteLine("Finished installing!");
         }
 
@@ -63,11 +61,8 @@ namespace webCollections.Installation
         {
             var installationSteps = InstallSteps();
 
-            foreach(var step in installationSteps)
-            {
-                step.Undo();
-            }
-            
+            foreach (var step in installationSteps) step.Undo();
+
             Console.WriteLine("Finished uninstalling!");
         }
     }
