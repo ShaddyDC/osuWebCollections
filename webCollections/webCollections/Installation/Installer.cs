@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -7,72 +8,23 @@ namespace webCollections.Installation
 {
     internal static class Installer
     {
-        private const string Title = "dev.shaddy.webcollections";
-
-        private static readonly bool IsWindows =
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
-        private static readonly string CurrentDir =
-            Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty;
-
-        private static readonly string WindowsFile =
-            Path.Combine(CurrentDir, "launch.bat");
-
-        private static readonly string LinuxFile =
-            Path.Combine(CurrentDir, "launch.sh");
-
-        private static readonly string LaunchFile = (IsWindows ? WindowsFile : LinuxFile).Replace("\\", "/");
-
-        private static readonly string WindowsFileContent =
-            $"@echo off\ndotnet {Assembly.GetEntryAssembly()?.Location}";
-
-        private static readonly string LinuxLaunchContent = //TODO try without DIR GetFileName
-            $"#!/bin/sh\nDIR=\"$( cd \"$( dirname \"${{BASH_SOURCE[0]}}\" )\" >/dev/null 2>&1 && pwd )\"\nexec dotnet \"$DIR/{Path.GetFileName(Assembly.GetEntryAssembly()?.Location)}\"";
-
-        private static string ConnectorContent(Browser browser)
+        private static IEnumerable<INInstallStep> InstallSteps()
         {
-            var allowedKey = browser switch
+            if (InstallData.IsWindows)
             {
-                Browser.Chrome => "allowed_origins",
-                Browser.Firefox => "allowed_extensions",
-                _ => ""
-            };
-            var allowedValue = browser switch //TODO update id
-            {
-                Browser.Chrome => "chrome-extension://pplnclfbilfnbjcdbjeoajbageakgjfa/",
-                Browser.Firefox => "webcollections@shaddy.dev",
-                _ => ""
-            };
-
-
-            return $@"{{
-  ""name"": ""{Title}"",
-  ""description"": ""Example host for native messaging"",
-  ""path"": ""{LaunchFile}"",
-  ""type"": ""stdio"",
-  ""{allowedKey}"": [""{allowedValue}""]
-}}";
-        }
-
-        internal static INInstallStep[] InstallSteps()
-        {
-            const string file = Title + ".json";
-
-            if (IsWindows)
-            {
-                var firefoxFile = Path.Combine(CurrentDir, "firefox-" + file);
-                var chromeFile = Path.Combine(CurrentDir, "chrome-" + file);
+                var firefoxFile = Path.Combine(InstallData.CurrentDir, "firefox-" + InstallData.Filename);
+                var chromeFile = Path.Combine(InstallData.CurrentDir, "chrome-" + InstallData.Filename);
 
                 var installationSteps = new INInstallStep[]
                 {
-                    new ConfigFileStep(firefoxFile, ConnectorContent(Browser.Firefox)),
-                    new RegistryKeyStep(chromeFile, ConnectorContent(Browser.Chrome)),
-                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\NativeMessagingHosts", Title), firefoxFile),
-                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\ManagedStorage", Title), firefoxFile),
-                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\PKCS11Modules", Title), firefoxFile),
-                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Google\Chrome\NativeMessagingHosts", Title),
+                    new ConfigFileStep(firefoxFile, InstallData.ConnectorContent(InstallData.Browser.Firefox)),
+                    new RegistryKeyStep(chromeFile, InstallData.ConnectorContent(InstallData.Browser.Chrome)),
+                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\NativeMessagingHosts", InstallData.Title), firefoxFile),
+                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\ManagedStorage", InstallData.Title), firefoxFile),
+                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Mozilla\PKCS11Modules", InstallData.Title), firefoxFile),
+                    new RegistryKeyStep(Path.Combine(@"SOFTWARE\Google\Chrome\NativeMessagingHosts", InstallData.Title),
                         chromeFile),
-                    new ExeFileStep(WindowsFile, WindowsFileContent)
+                    new ExeFileStep(InstallData.WindowsFile, InstallData.WindowsFileContent)
                 };
 
                 return installationSteps;
@@ -80,15 +32,15 @@ namespace webCollections.Installation
             else
             {
                 var firefoxFile = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    ".mozilla/native-messaging-hosts", file);
+                    ".mozilla/native-messaging-hosts", InstallData.Filename);
                 var chromeFile = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    ".config/google-chrome/NativeMessagingHosts", file);
+                    ".config/google-chrome/NativeMessagingHosts", InstallData.Filename);
 
                 var installationSteps = new INInstallStep[]
                 {
-                    new ConfigFileStep(chromeFile, ConnectorContent(Browser.Chrome)),
-                    new ConfigFileStep(firefoxFile, ConnectorContent(Browser.Firefox)),
-                    new ExeFileStep(LinuxFile, LinuxLaunchContent)
+                    new ConfigFileStep(chromeFile, InstallData.ConnectorContent(InstallData.Browser.Chrome)),
+                    new ConfigFileStep(firefoxFile, InstallData.ConnectorContent(InstallData.Browser.Firefox)),
+                    new ExeFileStep(InstallData.LinuxFile, InstallData.LinuxLaunchContent)
                 };
 
                 return installationSteps;
@@ -117,12 +69,6 @@ namespace webCollections.Installation
             }
             
             Console.WriteLine("Finished uninstalling!");
-        }
-
-        private enum Browser
-        {
-            Chrome,
-            Firefox
         }
     }
 }
