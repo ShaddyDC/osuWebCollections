@@ -1,6 +1,8 @@
 export default class MapState {
   public hostReady = false;
 
+  public hostBroken = false;
+
   public mapLoaded = false;
 
   public mapAvailable = false;

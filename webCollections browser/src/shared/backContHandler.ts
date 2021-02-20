@@ -19,6 +19,11 @@ export default class BackgroundHandler {
           this.hostReadyHandler((message as Ops.HostReadyOperation).ready);
         break;
 
+      case Ops.OperationType.hostBroken:
+        if (this.hostBrokenHandler)
+          this.hostBrokenHandler((message as Ops.HostBrokenOperation).broken);
+        break;
+
       case Ops.OperationType.collections:
         if (this.collectionsHandler)
           this.collectionsHandler(
@@ -79,6 +84,8 @@ export default class BackgroundHandler {
   public readyHandler: (() => void) | undefined;
 
   public hostReadyHandler: ((ready: boolean) => void) | undefined;
+
+  public hostBrokenHandler: ((ready: boolean) => void) | undefined;
 
   public collectionsHandler: ((collections: [string]) => void) | undefined;
 

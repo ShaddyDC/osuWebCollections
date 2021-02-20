@@ -1,3 +1,4 @@
+import { browser } from "webextension-polyfill-ts";
 import * as Background from "../shared/backContOps";
 import BackgroundHandler from "../shared/backContHandler";
 import { Beatmap } from "../shared/beatmap";
@@ -151,6 +152,32 @@ function connect(): void {
   background.connect();
 }
 
+function nativeHostBroken(broken: boolean): void {
+  console.log(`Native host is broken: ${broken}`);
+
+  if (!broken) {
+    nativeHostReady(false);
+    return;
+  }
+
+  const statusNode = document.getElementById("status");
+  if (statusNode) statusNode.hidden = !broken;
+
+  const collectionsNode = document.getElementById("collections-list");
+  if (collectionsNode) collectionsNode.hidden = broken;
+
+  if (!broken || !statusNode) return;
+
+  statusNode.innerHTML = "";
+  const textNode = statusNode.appendChild(document.createElement("p"));
+  textNode.textContent =
+    "Could not connect to native host! Please follow the instructions to install the host application carefully!";
+
+  const instructions = statusNode.appendChild(document.createElement("a"));
+  instructions.textContent = "Click here for instructions";
+  instructions.href = "https://github.com/ShaddyDC/osuWebCollections";
+}
+
 function nativeHostReady(ready: boolean) {
   console.log(`Native host is ready: ${ready}`);
 
@@ -160,10 +187,20 @@ function nativeHostReady(ready: boolean) {
   const collectionsNode = document.getElementById("collections-list");
   if (collectionsNode) collectionsNode.hidden = !ready;
 
-  if (ready)
+  if (ready) {
     background.postOperation(
       new Background.CollectionMapsRequestOperation(null)
     );
+  } else {
+    if (!statusNode) return;
+    statusNode.innerHTML = "";
+    const textNode = statusNode.appendChild(document.createElement("p"));
+    textNode.textContent = "Waiting for host to be ready";
+
+    const options = statusNode.appendChild(document.createElement("a"));
+    options.textContent = "Click here for to check your configuration";
+    options.onclick = () => browser.runtime.openOptionsPage();
+  }
 }
 
 background.readyHandler = () => {
@@ -173,6 +210,7 @@ background.readyHandler = () => {
 };
 
 background.hostReadyHandler = nativeHostReady;
+background.hostBrokenHandler = nativeHostBroken;
 background.collectionsHandler = updateCollections;
 background.collectionsMapsHandler = collectionMaps;
 background.collectionMapAddHandler = collectionAddMapEvent;

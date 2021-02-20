@@ -1,3 +1,4 @@
+import { browser } from "webextension-polyfill-ts";
 import MapState from "./map-state";
 
 function isLoaded(): boolean {
@@ -122,9 +123,25 @@ export default class DomStuffs {
     heading.className = "beatmapset-info__header";
     heading.innerText = "Collections";
 
+    if (this.mapState.hostBroken) {
+      const stateText = section.appendChild(document.createElement("p"));
+      stateText.textContent =
+        "Could not connect to native host! Please follow the instructions to install the host application carefully!";
+      stateText.style.color = "red";
+
+      const instructions = section.appendChild(document.createElement("a"));
+      instructions.textContent = "Click here for instructions";
+      instructions.href = "https://github.com/ShaddyDC/osuWebCollections";
+      return;
+    }
+
     if (!this.mapState.hostReady) {
       const stateText = section.appendChild(document.createElement("p"));
       stateText.textContent = "Waiting for host...";
+
+      const options = section.appendChild(document.createElement("a"));
+      options.textContent = "Click here for to check your configuration";
+      options.onclick = () => browser.runtime.openOptionsPage();
       return;
     }
 

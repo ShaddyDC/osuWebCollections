@@ -1,6 +1,7 @@
 export enum OperationType {
   ready,
   hostReady,
+  hostBroken,
   collectionsPageOpen,
   collections,
   mapCheck,
@@ -25,6 +26,15 @@ export class HostReadyOperation extends Operation {
   }
 
   ready!: boolean;
+}
+
+export class HostBrokenOperation extends Operation {
+  constructor(broken: boolean) {
+    super(OperationType.hostBroken);
+    this.broken = broken;
+  }
+
+  broken!: boolean;
 }
 
 export class MapCheckOperation extends Operation {

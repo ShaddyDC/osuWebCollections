@@ -26,7 +26,7 @@ function currentMapId(): string | undefined {
 }
 
 function loadCurrentMap(): void {
-  if (!mapState.hostReady) return;
+  if (!mapState.hostReady || mapState.hostBroken) return;
   mapState.mapLoaded = false;
   dom.triggerUpdateNeeded();
 
@@ -41,11 +41,21 @@ function loadCurrentMap(): void {
 }
 
 function handleHostReadiness(ready: boolean) {
+  if (mapState.hostReady === ready) return;
+
   mapState.hostReady = ready;
   dom.triggerUpdateNeeded();
   console.log(`Native host is ready ${mapState.hostReady}`);
 
   if (mapState.hostReady) loadCurrentMap();
+}
+
+function handleHostBroken(broken: boolean): void {
+  if (mapState.hostBroken === broken) return;
+
+  mapState.hostBroken = broken;
+  dom.triggerUpdateNeeded();
+  console.log(`Native host is broken ${mapState.hostBroken}`);
 }
 
 function handleMapCollections(
@@ -126,6 +136,7 @@ function main(): void {
 
   background.readyHandler = () => console.log("Tab is ready");
   background.hostReadyHandler = handleHostReadiness;
+  background.hostBrokenHandler = handleHostBroken;
   background.collectionsHandler = handleCollections;
   background.mapCheckResultsHandler = handleMapCollections;
   background.collectionMapAddHandler = collectionAddMapEvent;

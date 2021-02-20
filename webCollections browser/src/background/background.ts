@@ -7,6 +7,7 @@ let nativePort: Runtime.Port;
 let osuFolder: string | null = null;
 let collections: [string];
 let hostReady: boolean = false;
+let hostBroken: boolean = false;
 const partialPackets = new Map<number, string>();
 
 function sendToAllPorts(obj: Content.Operation): void {
@@ -25,7 +26,7 @@ function loadSettings(): void {
     console.log(`osuFolder set to ${osuFolder}`);
 
     if (osuFolder != null && osuFolder !== "") {
-      nativePort.postMessage(new Native.OsuFolderOperation(osuFolder));
+      sendToNative(new Native.OsuFolderOperation(osuFolder));
     }
   }
 
@@ -46,7 +47,7 @@ function handleMapCheck(
   }
 
   console.log(`Map Check for ${message.mapId} from ${origin}`);
-  nativePort.postMessage(new Native.MapCheckOperation(message.mapId, origin));
+  sendToNative(new Native.MapCheckOperation(message.mapId, origin));
 }
 
 function contentHandler(message: Content.Operation, port: Runtime.Port): void {
@@ -67,7 +68,7 @@ function contentHandler(message: Content.Operation, port: Runtime.Port): void {
         const {
           collection,
         } = message as Content.CollectionMapsRequestOperation;
-        nativePort.postMessage(
+        sendToNative(
           new Native.CollectionMapsRequestOperation(collection, origin)
         );
       }
@@ -82,7 +83,7 @@ function contentHandler(message: Content.Operation, port: Runtime.Port): void {
     case Content.OperationType.collectionMapAdd:
       {
         const addM = message as Content.CollectionMapAddOperation;
-        nativePort.postMessage(
+        sendToNative(
           new Native.CollectionMapAddOperation(addM.collection, addM.mapId)
         );
       }
@@ -91,7 +92,7 @@ function contentHandler(message: Content.Operation, port: Runtime.Port): void {
     case Content.OperationType.collectionMapRemove:
       {
         const remM = message as Content.CollectionMapRemoveOperation;
-        nativePort.postMessage(
+        sendToNative(
           new Native.CollectionMapRemoveOperation(remM.collection, remM.mapId)
         );
       }
@@ -119,6 +120,7 @@ function contentConnectHandler(port: Runtime.Port): void {
   port.onMessage.addListener(contentHandler);
 
   port.postMessage(new Content.Operation(Content.OperationType.ready));
+  port.postMessage(new Content.HostReadyOperation(hostBroken));
   if (hostReady) {
     port.postMessage(new Content.HostReadyOperation(true));
     port.postMessage(new Content.CollectionsOperation(collections));
@@ -250,30 +252,58 @@ function nativeHandler(message: Native.Operation): void {
 
 // function ping(): void {
 //   console.log("Pinging native host");
-//   nativePort.postMessage(new Native.Operation(Native.OperationType.ping));
+//   sendToNative(new Native.Operation(Native.OperationType.ping));
 // }
 
 // function killNative(): void {
 //   console.log("Killing native host");
-//   nativePort.postMessage(new Native.Operation(Native.OperationType.exit));
+//   sendToNative(new Native.Operation(Native.OperationType.exit));
 // }
 
-function nativeDisconnect() {
-  const error = browser.runtime.lastError;
-  if (error) console.error("Error with native application", error);
+function sendToNative(obj: Native.Operation): void {
+  try {
+    nativePort.postMessage(obj);
+  } catch (error) {
+    console.error("Native Port disconnected!", error);
+    setTimeout(connectNative, 1000);
+  }
 }
 
-function main(): void {
-  console.log("Started osu!collections!");
-
+async function connectNative(): Promise<void> {
   browser.runtime.onConnect.addListener(contentConnectHandler);
 
-  nativePort = browser.runtime.connectNative("dev.shaddy.webcollections");
-  nativePort.onDisconnect.addListener(nativeDisconnect);
+  const application = "dev.shaddy.webcollections";
+  nativePort = browser.runtime.connectNative(application);
   nativePort.onMessage.addListener(nativeHandler);
-  console.log("Connected to native port!");
 
-  // Ping host when icon is clicked
+  try {
+    console.log("Pinging Native Host to verify connection.");
+    console.log(
+      await browser.runtime.sendNativeMessage(
+        application,
+        new Native.Operation(Native.OperationType.ping)
+      )
+    );
+    hostBroken = false;
+    sendToAllPorts(new Content.HostBrokenOperation(hostBroken));
+  } catch (error) {
+    console.error("Couldn't connect to native host!", error);
+    hostBroken = true;
+    setReadyStatus((hostReady = false));
+    sendToAllPorts(new Content.HostBrokenOperation(hostBroken));
+    setTimeout(connectNative, 1000);
+    return;
+  }
+
+  console.log("Connected to native port!");
+}
+
+async function main(): Promise<void> {
+  console.log("Started osu!collections!");
+
+  connectNative();
+
+  // Open collections page when icon is clicked
   browser.browserAction.onClicked.addListener(() =>
     browser.tabs.create({ url: "/src/collections_page/collections_page.html" })
   );
