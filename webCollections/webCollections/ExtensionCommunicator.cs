@@ -26,9 +26,7 @@ namespace webCollections
 
             var s = new string(buffer);
 
-            if (s == "")
-                return null;
-            return JsonConvert.DeserializeObject<JObject>(s);
+            return s == "" ? null : JsonConvert.DeserializeObject<JObject>(s);
         }
 
         public static void Write(JObject obj)
@@ -56,7 +54,7 @@ namespace webCollections
                 var currentObj = new JObject
                 {
                     ["id"] = messageId,
-                    ["operation"] = (int) OperationType.multiPacket,
+                    ["operation"] = (int) OperationType.MultiPacket,
                     ["data"] = current,
                     ["finished"] = s.Length == 0
                 };
@@ -76,18 +74,18 @@ namespace webCollections
 
         internal enum OperationType
         {
-            multiPacket,
-            ping,
-            pong,
-            error,
-            status,
-            exit,
-            osuFolder,
-            collections,
-            mapCheck,
-            collectionMaps,
-            collectionMapAdd,
-            collectionMapRemove
+            MultiPacket,
+            Ping,
+            Pong,
+            Error,
+            Status,
+            Exit,
+            OsuFolder,
+            Collections,
+            MapCheck,
+            CollectionMaps,
+            CollectionMapAdd,
+            CollectionMapRemove
         }
     }
 }

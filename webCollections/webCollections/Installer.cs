@@ -25,11 +25,13 @@ namespace webCollections
         private static readonly string LaunchFile = (IsWindows ? WindowsFile : LinuxFile).Replace("\\", "/");
 
         private static readonly string WindowsFileContent =
-            $"@echo off\ndotnet {Assembly.GetEntryAssembly().Location}";
+            $"@echo off\ndotnet {Assembly.GetEntryAssembly()?.Location}";
 
         private static readonly string LinuxLaunchContent = //TODO try without DIR GetFileName
-            $"#!/bin/sh\nDIR=\"$( cd \"$( dirname \"${{BASH_SOURCE[0]}}\" )\" >/dev/null 2>&1 && pwd )\"\nexec dotnet \"$DIR/{Path.GetFileName(Assembly.GetEntryAssembly().Location)}\"";
+            $"#!/bin/sh\nDIR=\"$( cd \"$( dirname \"${{BASH_SOURCE[0]}}\" )\" >/dev/null 2>&1 && pwd )\"\nexec dotnet \"$DIR/{Path.GetFileName(Assembly.GetEntryAssembly()?.Location)}\"";
 
+        // TODO: test only one folder
+        // TODO: Uninstall
         private static readonly string[] FirefoxRegistryFolders =
         {
             @"SOFTWARE\Mozilla\NativeMessagingHosts",
@@ -42,7 +44,7 @@ namespace webCollections
             @"SOFTWARE\Google\Chrome\NativeMessagingHosts"
         };
 
-        private static string connectorContent(Browser browser)
+        private static string ConnectorContent(Browser browser)
         {
             var allowedKey = browser switch
             {
@@ -76,7 +78,7 @@ namespace webCollections
                 var firefoxFile = Path.GetFullPath("firefox-" + file);
 
                 Console.WriteLine($"Creating {firefoxFile}...");
-                File.WriteAllText(firefoxFile, connectorContent(Browser.Firefox));
+                File.WriteAllText(firefoxFile, ConnectorContent(Browser.Firefox));
 
                 Console.WriteLine("Pointing registry to firefox file...");
                 foreach (var keyFolder in FirefoxRegistryFolders)
@@ -88,7 +90,7 @@ namespace webCollections
 
                 var chromeFile = Path.GetFullPath("chrome-" + file);
                 Console.WriteLine($"Creating {chromeFile}...");
-                File.WriteAllText(chromeFile, connectorContent(Browser.Chrome));
+                File.WriteAllText(chromeFile, ConnectorContent(Browser.Chrome));
 
                 Console.WriteLine("Pointing registry to chrome file...");
                 foreach (var keyFolder in ChromeRegistryFolders)
@@ -111,7 +113,7 @@ namespace webCollections
                 if (Directory.Exists(Path.GetFullPath(chromeFile)))
                 {
                     Console.WriteLine($"Creating {chromeFile}...");
-                    File.WriteAllText(chromeFile, connectorContent(Browser.Chrome));
+                    File.WriteAllText(chromeFile, ConnectorContent(Browser.Chrome));
                     Exec($"chmod o+r {chromeFile}");
                 }
 
@@ -119,7 +121,7 @@ namespace webCollections
                 if (Directory.Exists(Path.GetFullPath(firefoxFile)))
                 {
                     Console.WriteLine($"Creating {firefoxFile}...");
-                    File.WriteAllText(firefoxFile, connectorContent(Browser.Firefox));
+                    File.WriteAllText(firefoxFile, ConnectorContent(Browser.Firefox));
                     Exec($"chmod o+r {firefoxFile}");
                 }
 

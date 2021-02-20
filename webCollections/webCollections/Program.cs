@@ -7,8 +7,8 @@ namespace webCollections
 {
     internal class Program
     {
-        private OsuManager osuManager;
-        private bool running = true;
+        private OsuManager _osuManager;
+        private bool _running = true;
 
         private Program()
         {
@@ -19,16 +19,16 @@ namespace webCollections
         {
             var obj = new JObject
             {
-                ["operation"] = (int) ExtensionCommunicator.OperationType.status,
+                ["operation"] = (int) ExtensionCommunicator.OperationType.Status,
                 ["status"] = status
             };
             ExtensionCommunicator.Write(obj);
         }
 
-        private void SendError(JObject obj, string error)
+        private static void SendError(JObject obj, string error)
         {
             obj["obj"] = obj;
-            obj["operation"] = (int) ExtensionCommunicator.OperationType.error;
+            obj["operation"] = (int) ExtensionCommunicator.OperationType.Error;
             obj["error"] = error;
             ExtensionCommunicator.Write(obj);
         }
@@ -42,11 +42,11 @@ namespace webCollections
                 return;
             }
 
-            var available = osuManager.MapHash(mapId.Value) != null;
+            var available = _osuManager.MapHash(mapId.Value) != null;
             obj["available"] = available;
             if (available)
             {
-                var list = osuManager.IdCollections(mapId.Value);
+                var list = _osuManager.IdCollections(mapId.Value);
                 obj["mapCollectionsJSON"] = JsonConvert.SerializeObject(list);
             }
 
@@ -56,9 +56,9 @@ namespace webCollections
         private void HandleAddMapCollection(JObject obj)
         {
             var mapId = obj["mapId"].ToObject<int>();
-            var hash = osuManager.MapHash(mapId);
+            var hash = _osuManager.MapHash(mapId);
             var collection = obj["collection"].ToString();
-            osuManager.AddMapCollection(hash, collection);
+            _osuManager.AddMapCollection(hash, collection);
 
             SendCollections(); //Todo: Only send when new collection
             ExtensionCommunicator.Write(obj);
@@ -67,9 +67,9 @@ namespace webCollections
         private void HandleRemoveMapCollection(JObject obj)
         {
             var mapId = obj["mapId"].ToObject<int>();
-            var hash = osuManager.MapHash(mapId);
+            var hash = _osuManager.MapHash(mapId);
             var collection = obj["collection"].ToString();
-            osuManager.RemoveMapCollection(hash, collection);
+            _osuManager.RemoveMapCollection(hash, collection);
 
             ExtensionCommunicator.Write(obj);
         }
@@ -77,18 +77,18 @@ namespace webCollections
         private void HandleAddMapFile(JObject obj)
         {
             var mapFile = obj["mapFile"].ToString();
-            osuManager.AddMapFile(mapFile);
+            _osuManager.AddMapFile(mapFile);
 
             ExtensionCommunicator.Write(obj);
         }
 
         private void HandleCollectionMaps(JObject obj)
         {
-            var collectionsMaps = osuManager.CollectionsMaps();
+            var collectionsMaps = _osuManager.CollectionsMaps();
 
             if (obj["collection"] != null && obj["collection"].Type != JTokenType.Null)
             {
-                var maps = osuManager.CollectionMaps(obj["collection"].ToString());
+                var maps = _osuManager.CollectionMaps(obj["collection"].ToString());
                 obj["collectionSize"] = maps?.Count;
                 obj["mapsJSON"] = JsonConvert.SerializeObject(maps);
                 ExtensionCommunicator.Write(obj);
@@ -115,7 +115,7 @@ namespace webCollections
 
             var folder = obj["osuFolder"].ToString();
             SendStatus("Loading databases");
-            osuManager = new OsuManager(folder);
+            _osuManager = new OsuManager(folder);
             SendStatus("Ready");
             SendCollections();
         }
@@ -124,8 +124,8 @@ namespace webCollections
         {
             var obj = new JObject
             {
-                ["operation"] = (int) ExtensionCommunicator.OperationType.collections,
-                ["collectionsJSON"] = JsonConvert.SerializeObject(osuManager.Collections())
+                ["operation"] = (int) ExtensionCommunicator.OperationType.Collections,
+                ["collectionsJSON"] = JsonConvert.SerializeObject(_osuManager.Collections())
             };
             ExtensionCommunicator.Write(obj);
         }
@@ -145,32 +145,32 @@ namespace webCollections
             {
                 switch ((ExtensionCommunicator.OperationType) obj["operation"].ToObject<int>())
                 {
-                    case ExtensionCommunicator.OperationType.ping:
-                        obj["operation"] = (int) ExtensionCommunicator.OperationType.pong;
+                    case ExtensionCommunicator.OperationType.Ping:
+                        obj["operation"] = (int) ExtensionCommunicator.OperationType.Pong;
                         ExtensionCommunicator.Write(obj);
                         break;
-                    case ExtensionCommunicator.OperationType.exit:
-                        running = false;
+                    case ExtensionCommunicator.OperationType.Exit:
+                        _running = false;
                         SendStatus("Exiting...");
                         break;
 
-                    case ExtensionCommunicator.OperationType.osuFolder:
+                    case ExtensionCommunicator.OperationType.OsuFolder:
                         HandleOsuFolder(obj);
                         break;
 
-                    case ExtensionCommunicator.OperationType.mapCheck:
+                    case ExtensionCommunicator.OperationType.MapCheck:
                         HandleMapCheck(obj);
                         break;
 
-                    case ExtensionCommunicator.OperationType.collectionMaps:
+                    case ExtensionCommunicator.OperationType.CollectionMaps:
                         HandleCollectionMaps(obj);
                         break;
 
-                    case ExtensionCommunicator.OperationType.collectionMapAdd:
+                    case ExtensionCommunicator.OperationType.CollectionMapAdd:
                         HandleAddMapCollection(obj);
                         break;
 
-                    case ExtensionCommunicator.OperationType.collectionMapRemove:
+                    case ExtensionCommunicator.OperationType.CollectionMapRemove:
                         HandleRemoveMapCollection(obj);
                         break;
 
@@ -194,7 +194,7 @@ namespace webCollections
             }
 
             var program = new Program();
-            while (program.running)
+            while (program._running)
             {
                 program.HandleOperation();
                 Thread.Sleep(10);
