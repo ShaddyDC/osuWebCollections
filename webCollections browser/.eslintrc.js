@@ -20,7 +20,8 @@ module.exports = {
     ],
     "rules": {
         "max-classes-per-file": 0,
-        "no-console": 0
+        "no-console": 0,
+        "@typescript-eslint/no-use-before-define": ["error", { "functions": false }]
     },
     "root": true
 };
