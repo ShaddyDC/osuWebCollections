@@ -4,7 +4,8 @@
     "version": "0.1",
     "description": "wip webCollections addon",
     "icons": {
-        "48": "icons/webCollections-48.png"
+        "48": "icons/webCollections.svg",
+        "96": "icons/webCollections.svg"
     },
     "browser_specific_settings": {
         "gecko": {
@@ -19,7 +20,7 @@
         "storage"
     ],
     "browser_action": {
-        "default_icon": "icons/webCollections-48.png",
+        "default_icon": "icons/webCollections.svg",
         "default_title": "webCollections"
     },
     "options_ui": {
